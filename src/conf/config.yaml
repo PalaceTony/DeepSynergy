@@ -2,6 +2,7 @@
 defaults:
   - _self_
 
+seed: 42
 data:
   file: "/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/data_test_fold0_tanh.p_1.gz"
 

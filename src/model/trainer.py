@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import torch.nn.functional as F
 
 from lib.utils import moving_average
 
@@ -10,6 +11,7 @@ class Trainer:
         model,
         criterion,
         optimizer,
+        logger,
         train_loader,
         device,
         cfg,
@@ -28,6 +30,7 @@ class Trainer:
         self.cfg = cfg
         self.firstTrain = firstTrain
         self.epochs = epochs
+        self.logger = logger
 
     def train_epoch(self):
         self.model.train()
@@ -61,16 +64,24 @@ class Trainer:
             if self.firstTrain:
                 val_loss = self.validate()
                 val_losses.append(val_loss)
-                print(
+                self.logger.info(
                     f"Epoch {epoch+1}/{epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}"
                 )
             else:
-                print("Testing") if epoch == 0 else None
-                test_loss = self.test()
-                test_losses.append(test_loss)
-                print(
-                    f"Epoch {epoch+1}/{epochs}, Train Loss: {train_loss:.4f}, Test Loss: {test_loss:.4f}"
+                if epoch == 0:
+                    self.logger.info("Testing")
+                    self.logger.info(f"The best epoch is {epochs}")
+                test_result = self.test()
+                test_losses.append(
+                    test_result["test_loss"]
+                )  # Append the numeric test_loss
+                self.logger.info(
+                    f"Epoch {epoch+1}/{epochs}, Train Loss: {train_loss:.4f}, Test Loss: {test_result['test_loss']:.4f}"
                 )
+                if epoch == epochs - 1:
+                    # Save the model
+                    torch.save(self.model.state_dict(), "best_model.pth")
+                    self.logger.info("The best model is saved!")
 
         if self.firstTrain:
             # Determine early stopping point
@@ -82,14 +93,37 @@ class Trainer:
             epo = np.argmin(smooth_val_loss)
             return epo, val_losses, smooth_val_loss
         else:
-            return None, None, None
+            return test_result["test_loss"]
 
     def test(self):
         self.model.eval()
         test_loss = 0
+        total_mse = 0  # To accumulate MSE
+        total_samples = 0  # To keep track of the total number of samples
+
         with torch.no_grad():
             for inputs, targets in self.test_loader:
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
                 outputs = self.model(inputs)
-                test_loss += self.criterion(outputs.squeeze(), targets).item()
-        return test_loss / len(self.test_loader)
+
+                # Assuming your criterion is MSE
+                batch_loss = self.criterion(outputs.squeeze(), targets)
+                test_loss += batch_loss.item()
+
+                # Directly compute MSE for clarity, even if criterion is MSE
+                mse = F.mse_loss(outputs.squeeze(), targets, reduction="sum")
+                total_mse += mse.item()
+
+                # Update total samples
+                total_samples += targets.size(0)
+
+        # Compute final MSE and RMSE
+        final_mse = total_mse / total_samples
+        final_rmse = torch.sqrt(torch.tensor(final_mse))
+
+        # Returning the computed metrics
+        return {
+            "test_loss": test_loss / len(self.test_loader),
+            "mse": final_mse,
+            "rmse": final_rmse.item(),
+        }
