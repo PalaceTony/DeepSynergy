@@ -1,0 +1,6 @@
+outputs
+X.p.gz
+smiles.csv
+labels.csv
+__pycache__/
+data
