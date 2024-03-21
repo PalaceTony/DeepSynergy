@@ -106,11 +106,9 @@ class Trainer:
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
                 outputs = self.model(inputs)
 
-                # Assuming your criterion is MSE
                 batch_loss = self.criterion(outputs.squeeze(), targets)
                 test_loss += batch_loss.item()
 
-                # Directly compute MSE for clarity, even if criterion is MSE
                 mse = F.mse_loss(outputs.squeeze(), targets, reduction="sum")
                 total_mse += mse.item()
 
