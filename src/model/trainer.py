@@ -63,6 +63,7 @@ class Trainer:
                 val_losses.append(val_loss)
                 print(f"Epoch {epoch}, Train Loss: {train_loss}, Val Loss: {val_loss}")
             else:
+                print("Testing")
                 test_loss = self.test()
                 test_losses.append(test_loss)
                 print(
@@ -85,7 +86,6 @@ class Trainer:
         self.model.eval()
         test_loss = 0
         with torch.no_grad():
-            print("Testing")
             for inputs, targets in self.test_loader:
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
                 outputs = self.model(inputs)
