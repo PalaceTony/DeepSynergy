@@ -93,7 +93,7 @@ class Trainer:
             epo = np.argmin(smooth_val_loss)
             return epo, val_losses, smooth_val_loss
         else:
-            return test_result["test_loss"]
+            return test_losses
 
     def test(self):
         self.model.eval()

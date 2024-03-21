@@ -4,7 +4,7 @@ defaults:
 
 seed: 42
 data:
-  file: "/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/data_test_fold0_tanh.p_1.gz"
+  file: "/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/data_test_fold1_tanh.p"
 
 model:
   layers: [8182, 4096, 1]
@@ -20,4 +20,4 @@ training:
 # dir
 hydra:
   run:
-    dir: outputs/${now:%m-%d_%H-%M}
+    dir: outputs/${now:%m-%d_%H-%M-%S}

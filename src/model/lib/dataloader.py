@@ -6,7 +6,10 @@ import torch
 
 def get_dataloader(cfg, device):
     # Load data
-    with gzip.open(cfg.data.file, "rb") as file:
+    # with gzip.open(cfg.data.file, "rb") as file:
+    #     X_tr, X_val, X_train, X_test, y_tr, y_val, y_train, y_test = pickle.load(file)
+
+    with open(cfg.data.file, "rb") as file:
         X_tr, X_val, X_train, X_test, y_tr, y_val, y_train, y_test = pickle.load(file)
 
     # Convert numpy arrays to torch tensors and move them to the selected device
