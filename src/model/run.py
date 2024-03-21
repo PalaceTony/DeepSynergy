@@ -11,7 +11,7 @@ from lib.vis import plot_performance
 from lib.dataloader import get_dataloader
 
 
-@hydra.main(config_path="../conf", config_name="config")
+@hydra.main(version_base="1.1", config_path="../conf", config_name="config")
 def main(cfg: DictConfig):
     # Set the device to GPU if available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
