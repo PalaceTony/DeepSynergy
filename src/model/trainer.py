@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from utils import moving_average
+from lib.utils import moving_average
 
 
 class Trainer:
