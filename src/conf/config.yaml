@@ -14,8 +14,8 @@ model:
 
 training:
   batch_size: 64
-  epochs: 4
-  early_stopping_average_over: 2
+  epochs: 1000
+  early_stopping_average_over: 15
 
 # dir
 hydra:
