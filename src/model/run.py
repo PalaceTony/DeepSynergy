@@ -58,10 +58,10 @@ def main(cfg: DictConfig):
         epochs=epo,
     )
     trainer.train()
-    average_test_loss = trainer.test()
+    test_loss = trainer.test()
 
     # Plot performance
-    plot_performance(val_losses, smooth_val_loss, average_test_loss)
+    plot_performance(val_losses, smooth_val_loss, test_loss)
 
 
 if __name__ == "__main__":

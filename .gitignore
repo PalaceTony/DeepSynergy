@@ -4,3 +4,4 @@ smiles.csv
 labels.csv
 __pycache__/
 data
+raw_data

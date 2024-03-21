@@ -54,6 +54,7 @@ class Trainer:
 
     def train(self):
         val_losses = []
+        test_losses = []
         epochs = self.epochs if self.epochs is not None else self.cfg.training.epochs
         for epoch in range(epochs):
             train_loss = self.train_epoch()
@@ -62,7 +63,11 @@ class Trainer:
                 val_losses.append(val_loss)
                 print(f"Epoch {epoch}, Train Loss: {train_loss}, Val Loss: {val_loss}")
             else:
-                print(f"Epoch {epoch}, Train Loss: {train_loss}")
+                test_loss = self.test()
+                test_losses.append(test_loss)
+                print(
+                    f"Epoch {epoch}, Train Loss: {train_loss}, Test Loss: {test_loss}"
+                )
 
         if self.firstTrain:
             # Determine early stopping point
@@ -78,15 +83,11 @@ class Trainer:
 
     def test(self):
         self.model.eval()
-        test_loss_sum = 0
-        test_samples = 0
+        test_loss = 0
         with torch.no_grad():
             print("Testing")
             for inputs, targets in self.test_loader:
                 inputs, targets = inputs.to(self.device), targets.to(self.device)
                 outputs = self.model(inputs)
-                test_loss = self.criterion(outputs.squeeze(), targets).item()
-                test_loss_sum += test_loss * inputs.size(0)
-                test_samples += inputs.size(0)
-        average_test_loss = test_loss_sum / test_samples
-        return average_test_loss
+                test_loss += self.criterion(outputs.squeeze(), targets).item()
+        return test_loss / len(self.test_loader)
