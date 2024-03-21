@@ -20,4 +20,3 @@ training:
 hydra:
   run:
     dir: outputs/${now:%m-%d_%H-%M}
-log_dir: outputs/${now:%m-%d_%H-%M}
