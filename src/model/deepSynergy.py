@@ -16,7 +16,7 @@ class DeepSynergyModel(nn.Module):
                 layer = nn.Linear(layers[i - 1], layers[i])
                 nn.init.kaiming_normal_(layer.weight)
                 self.layers.append(layer)
-                if i < self.num_layers - 1:  # No dropout after the last layer
+                if i < self.num_layers - 1:  # No dropout after the last
                     self.layers.append(nn.Dropout(dropout))
 
         self.activation = act_func
