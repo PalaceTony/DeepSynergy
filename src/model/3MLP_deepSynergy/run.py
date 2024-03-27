@@ -58,7 +58,11 @@ def main(cfg: DictConfig):
         val_loader,
         test_loader,
     )
-    trainer.train()
+    print(cfg.model.best_path)
+    if cfg.model.best_path is not None:
+        trainer.test()
+    else:
+        trainer.train()
 
 
 if __name__ == "__main__":
