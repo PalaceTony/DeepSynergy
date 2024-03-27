@@ -53,7 +53,6 @@ class Trainer:
 
         for epoch in range(1, self.cfg.training.epochs + 1):
             self.logger.info(f"Epoch {epoch}/{self.cfg.training.epochs}")
-
             _ = self.train_epoch()
             val_loss = self.validate()
 
@@ -67,7 +66,6 @@ class Trainer:
                 self.logger.info(
                     f"Validation loss did not improve. Count: {not_improved_count}/{self.cfg.early_stop_patience}"
                 )
-
             if not_improved_count >= self.cfg.training.early_stop_patience:
                 self.logger.info("Early stopping triggered.")
                 break
