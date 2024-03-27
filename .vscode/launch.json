@@ -5,6 +5,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "test_model",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "src/model/3MLP_deepSynergy/3mlp_deepSynergy.py",
+      "console": "integratedTerminal"
+    },
+    {
       "name": "run",
       "type": "debugpy",
       "request": "launch",
