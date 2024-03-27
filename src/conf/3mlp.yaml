@@ -1,0 +1,23 @@
+# conf/config.yaml
+defaults:
+  - _self_
+
+seed: 42
+data:
+  file: "/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/data_test_fold1_tanh.p"
+
+model:
+  layers: [8182, 4096, 1]
+  dropout: 0.5
+  input_dropout: 0.2
+  learning_rate: 0.00001
+
+training:
+  batch_size: 64
+  epochs: 1000
+  early_stopping_average_over: 15
+
+# dir
+hydra:
+  run:
+    dir: outputs/${now:%m-%d_%H-%M-%S}
