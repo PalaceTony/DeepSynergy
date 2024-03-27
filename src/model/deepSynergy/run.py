@@ -13,7 +13,9 @@ from lib.dataloader import get_dataloader
 from lib.utils import set_seed
 
 
-@hydra.main(version_base="1.1", config_path="../../conf", config_name="config")
+@hydra.main(
+    version_base="1.1", config_path="../../conf/model", config_name="deepSynergy"
+)
 def main(cfg: DictConfig):
     # Set the device to GPU if available
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
