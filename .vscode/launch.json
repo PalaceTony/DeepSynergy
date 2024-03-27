@@ -5,10 +5,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Python Debugger: Current File",
+      "name": "run",
       "type": "debugpy",
       "request": "launch",
-      "program": "src/model/run.py",
+      "program": "src/model/3MLP_deepSynergy/run.py",
       "console": "integratedTerminal"
     }
   ]
