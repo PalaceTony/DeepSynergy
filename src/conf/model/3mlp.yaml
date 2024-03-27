@@ -15,8 +15,8 @@ model:
 
 training:
   batch_size: 64
-  epochs: 2
-  early_stop_patience: 1
+  epochs: 1000
+  early_stop_patience: 100
 
 # dir
 hydra:
