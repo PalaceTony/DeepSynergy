@@ -6,15 +6,18 @@ data:
   file: "/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/3mlp_data_test_fold0_tanh.p"
 
 model:
-  layers: [8182, 4096, 1]
   dropout: 0.5
-  input_dropout: 0.2
   learning_rate: 0.00001
+  dsn1_layers: [2048, 4096, 2048]
+  dsn2_layers: [2048, 4096, 2048]
+  cln_layers: [1024, 2048, 1024] # Example configuration for the cell line network
+  spn_layers: [2048, 1024]
+  log_dir:
 
 training:
   batch_size: 64
-  epochs: 1000
-  early_stopping_average_over: 15
+  epochs: 2
+  early_stop_patience: 1
 
 # dir
 hydra:
