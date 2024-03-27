@@ -6,7 +6,7 @@ data:
   file: "/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/3mlp_data_test_fold0_tanh.p"
 
 model:
-  learning_rate: 0.00001
+  learning_rate: 0.0001
   dsn1_layers: [2048, 4096, 2048]
   dsn2_layers: [2048, 4096, 2048]
   cln_layers: [1024, 2048, 1024] # Example configuration for the cell line network
