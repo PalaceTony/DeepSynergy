@@ -83,9 +83,7 @@ class ThreeMLPdrugSynergyModel(nn.Module):
         x1 = self.dsn1(drug1)
         x2 = self.dsn2(drug2)
         x3 = self.cln(cell_line)
-        print(f"x1: {x1.shape}, x2: {x2.shape}, x3: {x3.shape}")  # Debugging line
         x = torch.cat((x1, x2, x3), dim=1)
-        print(f"Concatenated x: {x.shape}")  # More debugging
         x = self.spn(x)
         return self.output(x)
 
@@ -116,6 +114,3 @@ if __name__ == "__main__":
 
     # Perform a forward pass with the dummy data
     output = model(dummy_drug1, dummy_drug2, dummy_cell_line)
-
-    # Print the output shape to verify
-    print(f"Output shape: {output.shape}")
