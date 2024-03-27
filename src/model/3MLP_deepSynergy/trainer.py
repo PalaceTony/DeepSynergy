@@ -76,7 +76,7 @@ class Trainer:
                     f"Train loss: {train_loss:.4f}, Validate loss: {val_loss:.4f}"
                 )
                 self.logger.info(
-                    f"Validation loss did not improve. Count: {not_improved_count}/{self.cfg.early_stop_patience}"
+                    f"Validation loss did not improve. Count: {not_improved_count}/{self.cfg.training.early_stop_patience}"
                 )
             if not_improved_count >= self.cfg.training.early_stop_patience:
                 self.logger.info("Early stopping triggered.")
