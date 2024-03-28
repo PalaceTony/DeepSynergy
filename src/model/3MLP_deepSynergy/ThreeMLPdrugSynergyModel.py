@@ -86,31 +86,3 @@ class ThreeMLPdrugSynergyModel(nn.Module):
         x = torch.cat((x1, x2, x3), dim=1)
         x = self.spn(x)
         return self.output(x)
-
-
-if __name__ == "__main__":
-    input_shape1 = 1000  # Adjust based on your data for drug1
-    input_shape2 = 1000  # Adjust based on your data for drug2
-    input_shape_cln = 500  # Adjust based on your data for cell lines
-    dsn1_layers = [2048, 4096, 2048]
-    dsn2_layers = [2048, 4096, 2048]
-    cln_layers = [1024, 2048, 1024]  # Example configuration for the cell line network
-    spn_layers = [2048, 1024]
-
-    model = ThreeMLPdrugSynergyModel(
-        dsn1_layers,
-        dsn2_layers,
-        cln_layers,
-        spn_layers,
-        input_shape1,
-        input_shape2,
-        input_shape_cln,
-    )
-
-    # Create dummy input data
-    dummy_drug1 = torch.randn(10, input_shape1)
-    dummy_drug2 = torch.randn(10, input_shape2)
-    dummy_cell_line = torch.randn(10, input_shape_cln)
-
-    # Perform a forward pass with the dummy data
-    output = model(dummy_drug1, dummy_drug2, dummy_cell_line)
