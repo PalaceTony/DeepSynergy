@@ -1,2 +1,2 @@
 training:
-  early_stopping_average_over: 2
+  early_stopping_average_over: 15
