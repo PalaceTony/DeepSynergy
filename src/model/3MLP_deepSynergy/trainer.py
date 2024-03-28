@@ -97,7 +97,7 @@ class Trainer:
         y_true = []
         y_pred = []
         with torch.no_grad():
-            for big_batch in self.val_loader:
+            for big_batch in self.test_loader:
                 drug_A, drug_B, cell_line, labels = big_batch
                 outputs = self.model(drug_A, drug_B, cell_line)
                 test_loss += self.criterion(outputs.squeeze(), labels).item()
