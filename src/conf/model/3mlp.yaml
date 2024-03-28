@@ -4,7 +4,7 @@ defaults:
 
 seed: 42
 data:
-  file: "/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/3mlp_data_test_fold0_tanh.p"
+  file: "/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/3mlp_data_test_fold1_tanh.p"
 
 model:
   learning_rate: 0.0001
