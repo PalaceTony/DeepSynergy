@@ -14,7 +14,7 @@ from lib.utils import set_seed, configure_logging
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Parser for all models")
-    # Shared Parameters ####################################################################################################
+    # shared ####################################################################################################
     parser.add_argument(
         "--model",
         type=str,
@@ -25,20 +25,26 @@ def parse_args():
         "--data_file",
         type=str,
         default="/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/data_test_fold1_tanh.p",
-        help="Path to the data",
+        help="data path",
     )
-    parser.add_argument("--seed", type=int, default=42, help="Random seed")
-    parser.add_argument("--epochs", type=int, default=1000, help="Number of epochs")
+    parser.add_argument("--seed", type=int, default=42, help="seed")
+    parser.add_argument("--epochs", type=int, default=1000, help="epochs")
     parser.add_argument("--batch_size", type=int, default=64, help="Batch size")
     parser.add_argument(
         "--early_stop_patience", type=int, default=100, help="Early stopping"
     )
-    parser.add_argument("--best_path", type=str, help="Saved model")
+    parser.add_argument("--best_path", type=str, help="best model")
     parser.add_argument(
         "--output_dir", type=str, default="outputs", help="base outputs"
     )
+    parser.add_argument(
+        "--input_dropout", type=float, default=0.2, help="Input dropout"
+    )
+    parser.add_argument(
+        "--hidden_dropout", type=float, default=0.5, help="Hidden dropout"
+    )
 
-    # Deep Synery Default ####################################################################################################
+    # deepSynergy ####################################################################################################
     parser.add_argument(
         "--deepSynergy_learning_rate", type=float, default=0.00001, help="Learning rate"
     )
@@ -72,10 +78,10 @@ def parse_args():
         help="cell line layer",
     )
     parser.add_argument(
-        "--3MLP_spn_layers", type=int, default=[2048, 1024], help="merge layer"
+        "--3MLP_spn_layers", type=int, default=[2048, 1024], help="Prediction Layer"
     )
 
-    # MatchMaker ###################################################################################################
+    # matchMaker ###################################################################################################
     parser.add_argument(
         "--matchMaker_learning_rate", type=float, default=0.0001, help="Learning rate"
     )
@@ -83,29 +89,31 @@ def parse_args():
         "--matchMaker_dsn1_layers",
         type=int,
         default=[2048, 4096, 2048],
-        help="drug a layer",
+        help="drug a + cell layer",
     )
     parser.add_argument(
         "--matchMaker_dsn2_layers",
         type=int,
         default=[2048, 4096, 2048],
-        help="drug b layer",
+        help="drug b + cell layer",
     )
     parser.add_argument(
-        "--matchMaker_spn_layers", type=int, default=[2048, 1024], help="merge layer"
+        "--matchMaker_spn_layers",
+        type=int,
+        default=[2048, 1024],
+        help="Prediction layer",
     )
 
     #####################################################################################################
     args = parser.parse_args()
 
-    # Shared parameters extraction
+    # Model-specific parameters extraction
     shared_params = {
         k: v
         for k, v in vars(args).items()
         if not k.startswith("deepSynergy_") and not k.startswith("3MLP_")
     }
 
-    # Model-specific parameters extraction and conversion to Namespace
     args_deepSynergy = argparse.Namespace(
         **{
             k.replace("deepSynergy_", ""): v
