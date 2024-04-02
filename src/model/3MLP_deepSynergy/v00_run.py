@@ -23,23 +23,21 @@ parser.add_argument(
     "--dsn1_layers",
     type=int,
     default=[2048, 4096, 2048],
-    help="DSN1 layer sizes",
+    help="drug a layer",
 )
 parser.add_argument(
     "--dsn2_layers",
     type=int,
     default=[2048, 4096, 2048],
-    help="DSN2 layer sizes",
+    help="drug b layer",
 )
 parser.add_argument(
     "--cln_layers",
     type=int,
     default=[1024, 2048, 1024],
-    help="CLN layer sizes",
+    help="cell line layer",
 )
-parser.add_argument(
-    "--spn_layers", nargs="+", type=int, default=[2048, 1024], help="SPN layer sizes"
-)
+parser.add_argument("--spn_layers", type=int, default=[2048, 1024], help="merge layer")
 parser.add_argument("--best_path", type=str, help="Saved model")
 parser.add_argument("--batch_size", type=int, default=64, help="Batch size")
 parser.add_argument("--epochs", type=int, default=1000, help="Number of epochs")
@@ -51,8 +49,9 @@ parser.add_argument("--output_dir", type=str, default="outputs", help="base outp
 
 def main():
     args = parser.parse_args()
-    configure_logging(args)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+    configure_logging(args)
     set_seed(args.seed)
 
     (
