@@ -37,7 +37,7 @@ def parse_args():
     parser.add_argument(
         "--data_file",
         type=str,
-        default="/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/data_test_fold0_tanh.p",
+        default="/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/data_test_fold3_tanh.p",
         help="data path",
     )
     parser.add_argument("--best_path", type=str, help="best model")
@@ -268,7 +268,6 @@ if __name__ == "__main__":
                     [2048, 4096, 2048],
                     [512, 1024, 512, 256],
                     [1024, 4096, 2048, 1024],
-                    [2048, 8192, 4096, 2048],
                 ],
             ),
             "dsn2_layers": hp.choice(
@@ -279,7 +278,6 @@ if __name__ == "__main__":
                     [2048, 4096, 2048],
                     [512, 1024, 512, 256],
                     [1024, 4096, 2048, 1024],
-                    [2048, 8192, 4096, 2048],
                 ],
             ),
             "cln_layers": hp.choice(
@@ -290,7 +288,6 @@ if __name__ == "__main__":
                     [2048, 4096, 2048],
                     [512, 1024, 512, 256],
                     [1024, 4096, 2048, 1024],
-                    [2048, 8192, 4096, 2048],
                 ],
             ),
             "spn_layers": hp.choice(
@@ -301,7 +298,6 @@ if __name__ == "__main__":
                     [2048, 1024],
                     [512, 256, 128],
                     [1024, 512, 256],
-                    [2048, 1024, 512],
                 ],
             ),
             "batch_size": hp.choice("batch_size", [32, 64, 128, 256, 512]),
@@ -313,7 +309,7 @@ if __name__ == "__main__":
             fn=run_model,
             space=space,
             algo=tpe.suggest,
-            max_evals=200,
+            max_evals=100,
             trials=trials,
         )
         logger.info(f"Best hyperparameters: {best}")
