@@ -2,71 +2,65 @@ import torch
 import torch.nn as nn
 
 
-class MatchMaker(nn.Module):
+class MatchMakerModel(nn.Module):
     def __init__(
         self,
         dsn1_layers,
         dsn2_layers,
-        cln_layers,
         spn_layers,
         input_shape1,
         input_shape2,
-        input_shape_cln,
+        input_dropout=0.2,
+        dropout=0.5,
     ):
-        super(MatchMaker, self).__init__()
+        super(MatchMakerModel, self).__init__()
 
+        input_drop_out_flag = True
         # Drug A sub-network
         self.dsn1 = nn.ModuleList()
         prev_size = input_shape1
-        for layer_size in dsn1_layers:
+        for layer_size in dsn1_layers[:-1]:
             self.dsn1.append(nn.Linear(prev_size, layer_size))
             self.dsn1.append(nn.ReLU())
-            self.dsn1.append(nn.Dropout(p=0.2))
+            drop_out = input_dropout if input_drop_out_flag else dropout
+            input_drop_out_flag = False
+            self.dsn1.append(nn.Dropout(drop_out))
             prev_size = layer_size
+        self.dsn1.append(nn.Linear(prev_size, dsn1_layers[-1]))
 
+        input_drop_out_flag = True
         # Drug B sub-network
         self.dsn2 = nn.ModuleList()
         prev_size = input_shape2
-        for layer_size in dsn2_layers:
+        for layer_size in dsn2_layers[:-1]:
             self.dsn2.append(nn.Linear(prev_size, layer_size))
             self.dsn2.append(nn.ReLU())
-            self.dsn2.append(nn.Dropout(p=0.2))
+            drop_out = input_dropout if input_drop_out_flag else dropout
+            input_drop_out_flag = False
+            self.dsn1.append(nn.Dropout(drop_out))
             prev_size = layer_size
-
-        # Cell Line sub-network
-        self.cln = nn.ModuleList()
-        prev_size = input_shape_cln
-        for layer_size in cln_layers:
-            self.cln.append(nn.Linear(prev_size, layer_size))
-            self.cln.append(nn.ReLU())
-            self.cln.append(nn.Dropout(p=0.2))
-            prev_size = layer_size
+        self.dsn2.append(nn.Linear(prev_size, dsn2_layers[-1]))
 
         # Combined Network
         self.spn = nn.ModuleList()
-        combined_input_size = dsn1_layers[-1] + dsn2_layers[-1] + cln_layers[-1]
-        for layer_size in spn_layers[:-1]:  # Not the last layer
+        combined_input_size = dsn1_layers[-1] + dsn2_layers[-1]
+        for layer_size in spn_layers[:-1]:
             self.spn.append(nn.Linear(combined_input_size, layer_size))
             self.spn.append(nn.ReLU())
-            self.spn.append(nn.Dropout(p=0.2))
-            prev_size = layer_size
-        self.spn.append(nn.Linear(prev_size, spn_layers[-1]))
+            self.spn.append(nn.Dropout(input_dropout))
+            combined_input_size = layer_size
+        self.spn.append(nn.Linear(combined_input_size, spn_layers[-1]))
 
-        # Output
+        # Output layer
         self.output = nn.Linear(spn_layers[-1], 1)
 
-    def forward(self, drug1, drug2, cell_line):
+    def forward(self, drugA_cell, drugB_cell):
         for layer in self.dsn1:
-            drug1 = layer(drug1)
+            drugA_cell = layer(drugA_cell)
         for layer in self.dsn2:
-            drug2 = layer(drug2)
-        for layer in self.cln:
-            cell_line = layer(cell_line)
-
-        x = torch.cat((drug1, drug2, cell_line), dim=1)
-
+            drugB_cell = layer(drugB_cell)
+        x = torch.cat((drugA_cell, drugB_cell), dim=1)
         for layer in self.spn:
             x = layer(x)
-
         x = self.output(x)
         return x

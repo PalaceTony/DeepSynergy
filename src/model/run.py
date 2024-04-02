@@ -6,6 +6,7 @@ import torch.optim as optim
 
 from m_deepSynergy import DeepSynergyModel
 from m_threeMLP import ThreeMLPdrugSynergyModel
+from m_matchMaker import MatchMakerModel
 from trainer import Trainer
 from lib.dataloader import get_dataloader
 from lib.utils import set_seed, configure_logging
@@ -74,7 +75,27 @@ def parse_args():
         "--3MLP_spn_layers", type=int, default=[2048, 1024], help="merge layer"
     )
 
-    # Group ####################################################################################################
+    # MatchMaker ###################################################################################################
+    parser.add_argument(
+        "--matchMaker_learning_rate", type=float, default=0.0001, help="Learning rate"
+    )
+    parser.add_argument(
+        "--matchMaker_dsn1_layers",
+        type=int,
+        default=[2048, 4096, 2048],
+        help="drug a layer",
+    )
+    parser.add_argument(
+        "--matchMaker_dsn2_layers",
+        type=int,
+        default=[2048, 4096, 2048],
+        help="drug b layer",
+    )
+    parser.add_argument(
+        "--matchMaker_spn_layers", type=int, default=[2048, 1024], help="merge layer"
+    )
+
+    #####################################################################################################
     args = parser.parse_args()
 
     # Shared parameters extraction
@@ -103,16 +124,27 @@ def parse_args():
     )
     args_3MLP.__dict__.update(shared_params)
 
-    return args, args_deepSynergy, args_3MLP
+    args_matchMaker = argparse.Namespace(
+        **{
+            k.replace("matchMaker_", ""): v
+            for k, v in vars(args).items()
+            if k.startswith("matchMaker_")
+        }
+    )
+    args_matchMaker.__dict__.update(shared_params)
+
+    return args, args_deepSynergy, args_3MLP, args_matchMaker
 
 
 def main():
-    args, args_deepSynergy, args_3MLP = parse_args()
+    args, args_deepSynergy, args_3MLP, args_matchMaker = parse_args()
 
     if args.model == "deepSynergy":
         args = args_deepSynergy
     elif args.model == "3MLP":
         args = args_3MLP
+    elif args.model == "matchMaker":
+        args = args_matchMaker
     else:
         raise ValueError("Unsupported")
 
@@ -133,6 +165,14 @@ def main():
             drug_B_feature_shape,
             cell_line_feature_shape,
         ) = get_dataloader(args, device)
+    elif args.model == "matchMaker":
+        (
+            train_loader,
+            val_loader,
+            test_loader,
+            drug_A_feature_cell_shape,
+            drug_B_feature_cell_shape,
+        ) = get_dataloader(args, device)
 
     # Model
     if args.model == "deepSynergy":
@@ -148,6 +188,14 @@ def main():
             drug_A_feature_shape,
             drug_B_feature_shape,
             cell_line_feature_shape,
+        ).to(device)
+    elif args.model == "matchMaker":
+        model = MatchMakerModel(
+            args.dsn1_layers,
+            args.dsn2_layers,
+            args.spn_layers,
+            drug_A_feature_cell_shape,
+            drug_B_feature_cell_shape,
         ).to(device)
 
     # Optimizer and Criterion

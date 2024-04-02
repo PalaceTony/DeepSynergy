@@ -39,12 +39,16 @@ class Trainer:
                 inputs, labels = big_batch
             elif self.args.model == "3MLP":
                 drug_A, drug_B, cell_line, labels = big_batch
+            elif self.args.model == "matchMaker":
+                drug_A_cell, drug_B_cell, labels = big_batch
 
             self.optimizer.zero_grad()
             if self.args.model == "deepSynergy":
                 outputs = self.model(inputs)
             elif self.args.model == "3MLP":
                 outputs = self.model(drug_A, drug_B, cell_line)
+            elif self.args.model == "matchMaker":
+                outputs = self.model(drug_A_cell, drug_B_cell)
 
             loss = self.criterion(outputs.squeeze(), labels)
             loss.backward()
@@ -61,11 +65,15 @@ class Trainer:
                     inputs, labels = big_batch
                 elif self.args.model == "3MLP":
                     drug_A, drug_B, cell_line, labels = big_batch
+                elif self.args.model == "matchMaker":
+                    drug_A_cell, drug_B_cell, labels = big_batch
 
                 if self.args.model == "deepSynergy":
                     outputs = self.model(inputs)
                 elif self.args.model == "3MLP":
                     outputs = self.model(drug_A, drug_B, cell_line)
+                elif self.args.model == "matchMaker":
+                    outputs = self.model(drug_A_cell, drug_B_cell)
 
                 val_loss += self.criterion(outputs.squeeze(), labels)
         return val_loss / len(self.val_loader)
@@ -119,11 +127,15 @@ class Trainer:
                     inputs, labels = big_batch
                 elif self.args.model == "3MLP":
                     drug_A, drug_B, cell_line, labels = big_batch
+                elif self.args.model == "matchMaker":
+                    drug_A_cell, drug_B_cell, labels = big_batch
 
                 if self.args.model == "deepSynergy":
                     outputs = self.model(inputs)
                 elif self.args.model == "3MLP":
                     outputs = self.model(drug_A, drug_B, cell_line)
+                elif self.args.model == "matchMaker":
+                    outputs = self.model(drug_A_cell, drug_B_cell)
 
                 test_loss += self.criterion(outputs.squeeze(), labels)
 
