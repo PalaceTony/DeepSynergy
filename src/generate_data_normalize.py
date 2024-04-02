@@ -4,7 +4,31 @@ import pickle
 import gzip
 
 
-# Wrap the main process in a function
+def normalize(X, means1=None, std1=None, means2=None, std2=None, norm="tanh_norm"):
+    # Ensure X is contiguous and handle NaN values in X
+    X = np.ascontiguousarray(X)
+    if std1 is None:
+        std1 = np.nanstd(X, axis=0)
+    if means1 is None:
+        means1 = np.nanmean(X, axis=0)
+    std1_corrected = np.where(std1 == 0, np.finfo(float).eps, std1)
+    X_normalized = (X - means1) / std1_corrected
+    if norm == "norm":
+        return X_normalized, means1, std1, None, None
+    elif norm == "tanh":
+        return np.tanh(X_normalized), means1, std1, None, None
+    elif norm == "tanh_norm":
+        X_normalized = np.tanh(X_normalized)
+        if means2 is None:
+            means2 = np.mean(X_normalized, axis=0)
+        if std2 is None:
+            std2 = np.std(X_normalized, axis=0)
+        # Again ensure no division by zero for std2
+        std2_corrected = np.where(std2 == 0, np.finfo(float).eps, std2)
+        X_normalized = (X_normalized - means2) / std2_corrected
+        return X_normalized, means1, std1, means2, std2
+
+
 def process_data_for_folds(test_fold, val_fold, norm="tanh"):
     file = gzip.open(
         "/hpc2hdd/home/mgong081/Projects/DeepSynergy/raw_data/X.p.gz", "rb"
@@ -55,33 +79,8 @@ def process_data_for_folds(test_fold, val_fold, norm="tanh"):
     X_test_drug_B = X_test[:, drug_B_start:drug_B_end]
     X_test_cell_line = X_test[:, cell_line_start:]
 
-    def normalize(X, means1=None, std1=None, means2=None, std2=None, norm="tanh_norm"):
-        # Ensure X is contiguous and handle NaN values in X
-        X = np.ascontiguousarray(X)
-        if std1 is None:
-            std1 = np.nanstd(X, axis=0)
-        if means1 is None:
-            means1 = np.nanmean(X, axis=0)
-        std1_corrected = np.where(std1 == 0, np.finfo(float).eps, std1)
-        X_normalized = (X - means1) / std1_corrected
-        if norm == "norm":
-            return X_normalized, means1, std1, None, None
-        elif norm == "tanh":
-            return np.tanh(X_normalized), means1, std1, None, None
-        elif norm == "tanh_norm":
-            X_normalized = np.tanh(X_normalized)
-            if means2 is None:
-                means2 = np.mean(X_normalized, axis=0)
-            if std2 is None:
-                std2 = np.std(X_normalized, axis=0)
-            # Again ensure no division by zero for std2
-            std2_corrected = np.where(std2 == 0, np.finfo(float).eps, std2)
-            X_normalized = (X_normalized - means2) / std2_corrected
-            return X_normalized, means1, std1, means2, std2
-
     #### Normalize
 
-    # Normalize drug A/B and cell line without variance-based feature filtering
     # Tr
     X_tr_drug_A, mean_drug_A, std_drug_A, _, _ = normalize(X_tr_drug_A, norm=norm)
     X_tr_drug_B, mean_drug_B, std_drug_B, _, _ = normalize(X_tr_drug_B, norm=norm)
@@ -111,7 +110,7 @@ def process_data_for_folds(test_fold, val_fold, norm="tanh"):
         X_test_cell_line, mean_cell_line, std_cell_line, norm=norm
     )
 
-    # Save processed data
+    # Save
     save_path = (
         "/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/data_test_fold%d_%s.p"
         % (test_fold, norm)
