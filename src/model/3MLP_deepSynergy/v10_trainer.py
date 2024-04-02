@@ -12,7 +12,7 @@ class Trainer:
         criterion,
         optimizer,
         logger,
-        cfg,
+        args,
         train_loader,
         val_loader,
         test_loader,
@@ -21,12 +21,12 @@ class Trainer:
         self.criterion = criterion
         self.optimizer = optimizer
         self.logger = logger
-        self.cfg = cfg
+        self.args = args
         self.train_loader = train_loader
         self.val_loader = val_loader
         self.test_loader = test_loader
-        if self.cfg.model.best_path is not None:
-            self.best_path = self.cfg.model.best_path
+        if self.args.best_path is not None:
+            self.best_path = self.args.best_path
         else:
             self.best_path = os.path.join(os.getcwd(), "best_model.pth")
 
@@ -57,8 +57,8 @@ class Trainer:
         best_loss = float("inf")
         not_improved_count = 0
 
-        for epoch in range(1, self.cfg.training.epochs + 1):
-            self.logger.info(f"Epoch {epoch}/{self.cfg.training.epochs}")
+        for epoch in range(1, self.args.epochs + 1):
+            self.logger.info(f"Epoch {epoch}/{self.args.epochs}")
             train_loss = self.train_epoch()
             val_loss = self.validate()
 
@@ -76,9 +76,9 @@ class Trainer:
                     f"Train loss: {train_loss:.4f}, Validate loss: {val_loss:.4f}"
                 )
                 self.logger.info(
-                    f"Validation loss did not improve. Count: {not_improved_count}/{self.cfg.training.early_stop_patience}"
+                    f"Validation loss did not improve. Count: {not_improved_count}/{self.args.early_stop_patience}"
                 )
-            if not_improved_count >= self.cfg.training.early_stop_patience:
+            if not_improved_count >= self.args.early_stop_patience:
                 self.logger.info("Early stopping triggered.")
                 break
 
@@ -89,7 +89,7 @@ class Trainer:
         self.test()
 
     def test(self):
-        if self.cfg.model.best_path is not None:
+        if self.args.best_path is not None:
             self.model.load_state_dict(torch.load(self.best_path))
 
         self.model.eval()
