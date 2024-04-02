@@ -15,6 +15,17 @@ from lib.utils import set_seed, configure_logging
 def parse_args():
     parser = argparse.ArgumentParser(description="Parser for all models")
     # shared ####################################################################################################
+    parser.add_argument("--epochs", type=int, default=1000, help="epochs")
+    parser.add_argument("--batch_size", type=int, default=64, help="Batch size")
+    parser.add_argument(
+        "--early_stop_patience", type=int, default=100, help="Early stopping"
+    )
+    parser.add_argument(
+        "--input_dropout", type=float, default=0.2, help="Input dropout"
+    )
+    parser.add_argument(
+        "--hidden_dropout", type=float, default=0.5, help="Hidden dropout"
+    )
     parser.add_argument(
         "--model",
         type=str,
@@ -27,22 +38,11 @@ def parse_args():
         default="/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/data_test_fold1_tanh.p",
         help="data path",
     )
-    parser.add_argument("--seed", type=int, default=42, help="seed")
-    parser.add_argument("--epochs", type=int, default=1000, help="epochs")
-    parser.add_argument("--batch_size", type=int, default=64, help="Batch size")
-    parser.add_argument(
-        "--early_stop_patience", type=int, default=100, help="Early stopping"
-    )
     parser.add_argument("--best_path", type=str, help="best model")
     parser.add_argument(
         "--output_dir", type=str, default="outputs", help="base outputs"
     )
-    parser.add_argument(
-        "--input_dropout", type=float, default=0.2, help="Input dropout"
-    )
-    parser.add_argument(
-        "--hidden_dropout", type=float, default=0.5, help="Hidden dropout"
-    )
+    parser.add_argument("--seed", type=int, default=42, help="seed")
 
     # deepSynergy ####################################################################################################
     parser.add_argument(
