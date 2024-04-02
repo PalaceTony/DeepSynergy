@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 
-class ThreeMLPdrugSynergyModel(nn.Module):
+class MatchMaker(nn.Module):
     def __init__(
         self,
         dsn1_layers,
@@ -13,7 +13,7 @@ class ThreeMLPdrugSynergyModel(nn.Module):
         input_shape2,
         input_shape_cln,
     ):
-        super(ThreeMLPdrugSynergyModel, self).__init__()
+        super(MatchMaker, self).__init__()
 
         # Drug A sub-network
         self.dsn1 = nn.ModuleList()
