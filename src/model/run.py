@@ -4,8 +4,8 @@ import torch.nn as nn
 import torch.optim as optim
 
 
-from deepSynergy.deepSynergy import DeepSynergyModel
-from threeMLP.ThreeMLPdrugSynergyModel import ThreeMLPdrugSynergyModel
+from m_deepSynergy import DeepSynergyModel
+from m_ThreeMLPdrugSynergyModel import ThreeMLPdrugSynergyModel
 from trainer import Trainer
 from lib.dataloader import get_dataloader
 from lib.utils import set_seed, configure_logging
