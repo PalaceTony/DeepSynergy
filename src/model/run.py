@@ -263,6 +263,7 @@ if __name__ == "__main__":
             "dsn1_layers": hp.choice(
                 "dsn1_layers",
                 [
+                    [512, 1024, 512],
                     [1024, 2048, 1024],
                     [2048, 4096, 2048],
                     [512, 1024, 512, 256],
@@ -273,6 +274,7 @@ if __name__ == "__main__":
             "dsn2_layers": hp.choice(
                 "dsn2_layers",
                 [
+                    [512, 1024, 512],
                     [1024, 2048, 1024],
                     [2048, 4096, 2048],
                     [512, 1024, 512, 256],
@@ -283,6 +285,7 @@ if __name__ == "__main__":
             "cln_layers": hp.choice(
                 "cln_layers",
                 [
+                    [512, 1024, 512],
                     [1024, 2048, 1024],
                     [2048, 4096, 2048],
                     [512, 1024, 512, 256],
@@ -293,6 +296,7 @@ if __name__ == "__main__":
             "spn_layers": hp.choice(
                 "spn_layers",
                 [
+                    [512, 256],
                     [1024, 512],
                     [2048, 1024],
                     [512, 256, 128],
@@ -309,7 +313,7 @@ if __name__ == "__main__":
             fn=run_model,
             space=space,
             algo=tpe.suggest,
-            max_evals=10,
+            max_evals=200,
             trials=trials,
         )
         logger.info(f"Best hyperparameters: {best}")
