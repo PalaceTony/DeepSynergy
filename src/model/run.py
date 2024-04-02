@@ -120,7 +120,7 @@ def main():
     elif args.model == "3MLP":
         args = args_3MLP
     else:
-        raise ValueError("Unsupported model selected.")
+        raise ValueError("Unsupported")
 
     set_seed(args.seed)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
