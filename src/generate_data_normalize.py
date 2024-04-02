@@ -31,7 +31,7 @@ def normalize(X, means1=None, std1=None, means2=None, std2=None, norm="tanh_norm
 
 def process_data_for_folds(test_fold, val_fold, norm="tanh"):
     file = gzip.open(
-        "/hpc2hdd/home/mgong081/Projects/DeepSynergy/raw_data/X.p.gz", "rb"
+        "/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/raw/X.p.gz", "rb"
     )
     X = pickle.load(file)
     file.close()
