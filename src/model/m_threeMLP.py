@@ -55,15 +55,15 @@ class ThreeMLPdrugSynergyModel(nn.Module):
         # Output
         self.output = nn.Linear(spn_layers[-1], 1)
 
-    def forward(self, drug1, drug2, cell_line):
+    def forward(self, drugA, drugB, cell_line):
         for layer in self.dsn1:
-            drug1 = layer(drug1)
+            drugA = layer(drugA)
         for layer in self.dsn2:
-            drug2 = layer(drug2)
+            drugB = layer(drugB)
         for layer in self.cln:
             cell_line = layer(cell_line)
 
-        x = torch.cat((drug1, drug2, cell_line), dim=1)
+        x = torch.cat((drugA, drugB, cell_line), dim=1)
 
         for layer in self.spn:
             x = layer(x)
