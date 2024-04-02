@@ -9,15 +9,15 @@ class ThreeMLPdrugSynergyModel(nn.Module):
         dsn2_layers,
         cln_layers,
         spn_layers,
-        input_shape1,
-        input_shape2,
-        input_shape_cln,
+        drugA_input_shape,
+        drugB_input_shape,
+        cell_line_input_shape,
     ):
         super(ThreeMLPdrugSynergyModel, self).__init__()
 
         # Drug A sub-network
         self.dsn1 = nn.ModuleList()
-        prev_size = input_shape1
+        prev_size = drugA_input_shape
         for layer_size in dsn1_layers:
             self.dsn1.append(nn.Linear(prev_size, layer_size))
             self.dsn1.append(nn.ReLU())
@@ -26,7 +26,7 @@ class ThreeMLPdrugSynergyModel(nn.Module):
 
         # Drug B sub-network
         self.dsn2 = nn.ModuleList()
-        prev_size = input_shape2
+        prev_size = drugB_input_shape
         for layer_size in dsn2_layers:
             self.dsn2.append(nn.Linear(prev_size, layer_size))
             self.dsn2.append(nn.ReLU())
@@ -35,7 +35,7 @@ class ThreeMLPdrugSynergyModel(nn.Module):
 
         # Cell Line sub-network
         self.cln = nn.ModuleList()
-        prev_size = input_shape_cln
+        prev_size = cell_line_input_shape
         for layer_size in cln_layers:
             self.cln.append(nn.Linear(prev_size, layer_size))
             self.cln.append(nn.ReLU())
