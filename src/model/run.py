@@ -13,8 +13,7 @@ from lib.utils import set_seed, configure_logging
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Parser for all models")
-
-    # Shared Parameters
+    # Shared Parameters ####################################################################################################
     parser.add_argument(
         "--model",
         type=str,
@@ -38,7 +37,7 @@ def parse_args():
         "--output_dir", type=str, default="outputs", help="base outputs"
     )
 
-    # Deep Synery Default
+    # Deep Synery Default ####################################################################################################
     parser.add_argument(
         "--deepSynergy_learning_rate", type=float, default=0.00001, help="Learning rate"
     )
@@ -55,11 +54,10 @@ def parse_args():
         "--deepSynergy_input_dropout", type=float, default=0.2, help="Input dropout"
     )
 
-    # 3MLP
+    # 3MLP ####################################################################################################
     parser.add_argument(
         "--3MLP_learning_rate", type=float, default=0.0001, help="Learning rate"
     )
-
     parser.add_argument(
         "--3MLP_dsn1_layers",
         type=int,
@@ -81,6 +79,8 @@ def parse_args():
     parser.add_argument(
         "--3MLP_spn_layers", type=int, default=[2048, 1024], help="merge layer"
     )
+
+    # Group ####################################################################################################
     args = parser.parse_args()
 
     # Shared parameters extraction
