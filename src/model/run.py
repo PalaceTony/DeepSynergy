@@ -74,7 +74,7 @@ def parse_args():
     parser.add_argument(
         "--3MLP_cln_layers",
         type=int,
-        default=[1024, 2048, 1024],
+        default=[2048, 4096, 2048],
         help="cell line layer",
     )
     parser.add_argument(
