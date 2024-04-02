@@ -21,6 +21,14 @@ def get_dataloader(args, device):
             y_test,
         ) = pickle.load(file)
 
+    # # Calculate the leftover data points for each set
+    # leftover_train = len(y_tr) % args.batch_size
+    # leftover_val = len(y_val) % args.batch_size
+    # leftover_test = len(y_test) % args.batch_size
+    # print(f"Leftover training data points (not in a full batch): {leftover_train}")
+    # print(f"Leftover validation data points (not in a full batch): {leftover_val}")
+    # print(f"Leftover testing data points (not in a full batch): {leftover_test}")
+
     if args.model == "deepSynergy":
         X_tr_concatenated = np.concatenate(
             (X_tr_drug_A, X_tr_drug_B, X_tr_cell_line), axis=1
@@ -107,9 +115,15 @@ def get_dataloader(args, device):
         val_dataset = TensorDataset(X_val_drug_A_cell, X_val_drug_B_cell, y_val)
         test_dataset = TensorDataset(X_test_drug_A_cell, X_test_drug_B_cell, y_test)
 
-    train_loader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False)
-    test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
+    train_loader = DataLoader(
+        train_dataset, batch_size=args.batch_size, shuffle=True, drop_last=True
+    )
+    val_loader = DataLoader(
+        val_dataset, batch_size=args.batch_size, shuffle=False, drop_last=False
+    )
+    test_loader = DataLoader(
+        test_dataset, batch_size=args.batch_size, shuffle=False, drop_last=False
+    )
 
     if args.model == "deepSynergy":
         return train_loader, val_loader, test_loader, X_tr.shape[1]
