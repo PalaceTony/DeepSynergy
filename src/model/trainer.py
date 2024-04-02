@@ -1,6 +1,7 @@
-import torch
-import os
 import numpy as np
+import torch
+import torch.nn.functional as F
+import os
 
 from lib.metrics import mse, rmse, mae, pearson
 
@@ -34,9 +35,17 @@ class Trainer:
         self.model.train()
         train_loss = 0
         for big_batch in self.train_loader:
-            drug_A, drug_B, cell_line, labels = big_batch
+            if self.args.model == "deepSynergy":
+                inputs, labels = big_batch
+            elif self.args.model == "3MLP":
+                drug_A, drug_B, cell_line, labels = big_batch
+
             self.optimizer.zero_grad()
-            outputs = self.model(drug_A, drug_B, cell_line)
+            if self.args.model == "deepSynergy":
+                outputs = self.model(inputs)
+            elif self.args.model == "3MLP":
+                outputs = self.model(drug_A, drug_B, cell_line)
+
             loss = self.criterion(outputs.squeeze(), labels)
             loss.backward()
             self.optimizer.step()
@@ -48,8 +57,16 @@ class Trainer:
         val_loss = 0
         with torch.no_grad():
             for big_batch in self.val_loader:
-                drug_A, drug_B, cell_line, labels = big_batch
-                outputs = self.model(drug_A, drug_B, cell_line)
+                if self.args.model == "deepSynergy":
+                    inputs, labels = big_batch
+                elif self.args.model == "3MLP":
+                    drug_A, drug_B, cell_line, labels = big_batch
+
+                if self.args.model == "deepSynergy":
+                    outputs = self.model(inputs)
+                elif self.args.model == "3MLP":
+                    outputs = self.model(drug_A, drug_B, cell_line)
+
                 val_loss += self.criterion(outputs.squeeze(), labels)
         return val_loss / len(self.val_loader)
 
@@ -98,9 +115,18 @@ class Trainer:
         y_pred = []
         with torch.no_grad():
             for big_batch in self.test_loader:
-                drug_A, drug_B, cell_line, labels = big_batch
-                outputs = self.model(drug_A, drug_B, cell_line)
-                test_loss += self.criterion(outputs.squeeze(), labels).item()
+                if self.args.model == "deepSynergy":
+                    inputs, labels = big_batch
+                elif self.args.model == "3MLP":
+                    drug_A, drug_B, cell_line, labels = big_batch
+
+                if self.args.model == "deepSynergy":
+                    outputs = self.model(inputs)
+                elif self.args.model == "3MLP":
+                    outputs = self.model(drug_A, drug_B, cell_line)
+
+                test_loss += self.criterion(outputs.squeeze(), labels)
+
                 y_true.append(labels.cpu().numpy())
                 y_pred.append(outputs.squeeze().cpu().numpy())
 
