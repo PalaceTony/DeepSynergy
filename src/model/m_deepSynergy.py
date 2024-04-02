@@ -1,8 +1,9 @@
 import torch.nn as nn
+import torch
 
 
 class DeepSynergyModel(nn.Module):
-    def __init__(self, input_size, layers, input_dropout, dropout, act_func):
+    def __init__(self, layers, input_size, input_dropout=0.2, dropout=0.5):
         super(DeepSynergyModel, self).__init__()
         self.layers = nn.ModuleList()
         self.num_layers = len(layers)
@@ -19,7 +20,7 @@ class DeepSynergyModel(nn.Module):
                 if i < self.num_layers - 1:  # No dropout after the last
                     self.layers.append(nn.Dropout(dropout))
 
-        self.activation = act_func
+        self.activation = torch.nn.functional.relu
 
     def forward(self, x):
         for i, layer in enumerate(self.layers):

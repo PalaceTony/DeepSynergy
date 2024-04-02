@@ -47,12 +47,6 @@ def parse_args():
         default=[8182, 4096, 1],
         help="all layers",
     )
-    parser.add_argument(
-        "--deepSynergy_dropout", type=float, default=0.5, help="Dropout"
-    )
-    parser.add_argument(
-        "--deepSynergy_input_dropout", type=float, default=0.2, help="Input dropout"
-    )
 
     # 3MLP ####################################################################################################
     parser.add_argument(
@@ -125,6 +119,7 @@ def main():
     set_seed(args.seed)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+    # Dataloader
     if args.model == "deepSynergy":
         train_loader, val_loader, test_loader, drugs_cell_shape = get_dataloader(
             args, device
@@ -136,17 +131,14 @@ def main():
             test_loader,
             drug_A_feature_shape,
             drug_B_feature_shape,
-            cell_line_feature,
+            cell_line_feature_shape,
         ) = get_dataloader(args, device)
 
+    # Model
     if args.model == "deepSynergy":
-        model = DeepSynergyModel(
-            input_size=drugs_cell_shape,
-            layers=args.layers,
-            input_dropout=args.input_dropout,
-            dropout=args.dropout,
-            act_func=torch.nn.functional.relu,
-        ).to(device)
+        model = DeepSynergyModel(layers=args.layers, input_size=drugs_cell_shape).to(
+            device
+        )
     elif args.model == "3MLP":
         model = ThreeMLPdrugSynergyModel(
             args.dsn1_layers,
@@ -155,13 +147,14 @@ def main():
             args.spn_layers,
             drug_A_feature_shape,
             drug_B_feature_shape,
-            cell_line_feature,
+            cell_line_feature_shape,
         ).to(device)
 
+    # Optimizer and Criterion
     optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=0.5)
     criterion = nn.MSELoss()
 
-    # Train and Validate
+    # Train
     logger = configure_logging(args)
     trainer = Trainer(
         model,
