@@ -8,7 +8,7 @@ def pearson(y, pred):
     pear_value = pear[0]
     pear_p_val = pear[1]
 
-    return pear_value
+    return pear_value, pear_p_val
 
 
 def mse(y, pred):

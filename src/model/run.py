@@ -126,13 +126,14 @@ def main():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     if args.model == "deepSynergy":
-        X_tr, train_loader, val_loader, test_loader, _ = get_dataloader(args, device)
+        train_loader, val_loader, test_loader, drugs_cell_shape = get_dataloader(
+            args, device
+        )
     elif args.model == "3MLP":
         (
             train_loader,
             val_loader,
             test_loader,
-            _,
             drug_A_feature_shape,
             drug_B_feature_shape,
             cell_line_feature,
@@ -140,7 +141,7 @@ def main():
 
     if args.model == "deepSynergy":
         model = DeepSynergyModel(
-            input_size=X_tr.shape[1],
+            input_size=drugs_cell_shape,
             layers=args.layers,
             input_dropout=args.input_dropout,
             dropout=args.dropout,

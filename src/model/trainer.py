@@ -135,12 +135,13 @@ class Trainer:
         mse_value = mse(y_true, y_pred)
         rmse_value = rmse(y_true, y_pred)
         mae_value = mae(y_true, y_pred)
-        pearson_value = pearson(y_true, y_pred)
+        pearson_value, pear_p_val = pearson(y_true, y_pred)
 
         self.logger.info(f"Test MSE: {mse_value:.4f}")
         self.logger.info(f"Test RMSE: {rmse_value:.4f}")
         self.logger.info(f"Test MAE: {mae_value:.4f}")
         self.logger.info(f"Test Pearson: {pearson_value:.4f}")
+        self.logger.info(f"Test Pearson p-value: {pear_p_val:.4f}")
         self.logger.info(f"Test Loss: {test_loss / len(self.val_loader):.4f}")
 
         return test_loss / len(self.val_loader)
