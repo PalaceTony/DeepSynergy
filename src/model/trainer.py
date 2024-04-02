@@ -52,6 +52,7 @@ class Trainer:
 
             loss = self.criterion(outputs.squeeze(), labels)
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(self.model.parameters(), max_norm=1.0)
             self.optimizer.step()
             train_loss += loss.item()
         return train_loss / len(self.train_loader)
@@ -108,10 +109,12 @@ class Trainer:
                 break
 
         self.logger.info("-------------------Training completed-------------------")
-        self.logger.info(f"Best model saved to {self.best_path}")
-        self.logger.info("-------------------Testing -------------------")
-        self.model.load_state_dict(torch.load(self.best_path))
-        self.test()
+        if not self.args.hyperopt:
+            self.logger.info(f"Best model saved to {self.best_path}")
+            self.logger.info("-------------------Testing -------------------")
+            self.model.load_state_dict(torch.load(self.best_path))
+            self.test()
+        return best_loss
 
     def test(self):
         if self.args.best_path is not None:
