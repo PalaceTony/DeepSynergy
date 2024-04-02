@@ -3,6 +3,8 @@ import torch
 import logging
 import datetime
 import os
+import json
+import argparse
 
 
 def moving_average(a, n=3):
@@ -37,7 +39,8 @@ def configure_logging(args):
         logger.removeHandler(logger.handlers[0])
 
     # File handler for output log file
-    file_handler = logging.FileHandler(os.path.join(output_dir, "training.log"))
+    log_file_path = os.path.join(output_dir, "training.log")
+    file_handler = logging.FileHandler(log_file_path)
     file_handler.setFormatter(logging.Formatter(log_format))
     logger.addHandler(file_handler)
 
@@ -45,5 +48,11 @@ def configure_logging(args):
     console_handler = logging.StreamHandler()
     console_handler.setFormatter(logging.Formatter(log_format))
     logger.addHandler(console_handler)
+
+    args_dict = vars(args) if isinstance(args, argparse.Namespace) else args
+    config_str = json.dumps(args_dict, indent=4)
+
+    with open(log_file_path, "a") as log_file:  # Open in append mode
+        log_file.write("\nConfiguration Parameters:\n" + config_str + "\n")
 
     return logger
