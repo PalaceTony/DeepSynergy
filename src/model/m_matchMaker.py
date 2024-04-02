@@ -11,7 +11,7 @@ class MatchMakerModel(nn.Module):
         input_shape1,
         input_shape2,
         input_dropout=0.2,
-        dropout=0.5,
+        hidden_dropout=0.5,
     ):
         super(MatchMakerModel, self).__init__()
 
@@ -22,7 +22,7 @@ class MatchMakerModel(nn.Module):
         for layer_size in dsn1_layers[:-1]:
             self.dsn1.append(nn.Linear(prev_size, layer_size))
             self.dsn1.append(nn.ReLU())
-            drop_out = input_dropout if input_drop_out_flag else dropout
+            drop_out = input_dropout if input_drop_out_flag else hidden_dropout
             input_drop_out_flag = False
             self.dsn1.append(nn.Dropout(drop_out))
             prev_size = layer_size
@@ -35,7 +35,7 @@ class MatchMakerModel(nn.Module):
         for layer_size in dsn2_layers[:-1]:
             self.dsn2.append(nn.Linear(prev_size, layer_size))
             self.dsn2.append(nn.ReLU())
-            drop_out = input_dropout if input_drop_out_flag else dropout
+            drop_out = input_dropout if input_drop_out_flag else hidden_dropout
             input_drop_out_flag = False
             self.dsn1.append(nn.Dropout(drop_out))
             prev_size = layer_size
