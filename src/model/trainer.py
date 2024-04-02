@@ -82,11 +82,17 @@ class Trainer:
     def train(self):
         best_loss = float("inf")
         not_improved_count = 0
+        loss_threshold = 1e15
 
         for epoch in range(1, self.args.epochs + 1):
             self.logger.info(f"Epoch {epoch}/{self.args.epochs}")
             train_loss = self.train_epoch()
             val_loss = self.validate()
+            if train_loss > loss_threshold:
+                self.logger.info(
+                    f"Train loss exceeded threshold with {train_loss:.4f}, stopping training..."
+                )
+                break
 
             if val_loss < best_loss:
                 best_loss = val_loss

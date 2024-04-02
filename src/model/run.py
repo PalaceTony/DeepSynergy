@@ -17,7 +17,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Parser for all models")
     # shared ####################################################################################################
     parser.add_argument("--epochs", type=int, default=1000, help="epochs")
-    parser.add_argument("--batch_size", type=int, default=64, help="Batch size")
+    parser.add_argument("--batch_size", type=int, default=512, help="Batch size")
     parser.add_argument(
         "--input_dropout", type=float, default=0.2, help="Input dropout"
     )
@@ -151,7 +151,6 @@ def run_model(hyperparams):
     if args.hyperopt:
         logger.info("Hyperopt is updating the hyperparameters based on the space...")
         learning_rate = hyperparams["learning_rate"]
-        batch_size = hyperparams["batch_size"]
         hidden_dropout = hyperparams["hidden_dropout"]
         input_dropout = hyperparams["input_dropout"]
         dsn1_layers = hyperparams["dsn1_layers"]
@@ -160,7 +159,6 @@ def run_model(hyperparams):
         spn_layers = hyperparams["spn_layers"]
 
         args.learning_rate = learning_rate
-        args.batch_size = batch_size
         args.hidden_dropout = hidden_dropout
         args.input_dropout = input_dropout
         args.dsn1_layers = dsn1_layers
@@ -267,7 +265,6 @@ if __name__ == "__main__":
                     [1024, 2048, 1024],
                     [2048, 4096, 2048],
                     [512, 1024, 512, 256],
-                    [1024, 4096, 2048, 1024],
                 ],
             ),
             "dsn2_layers": hp.choice(
@@ -277,7 +274,6 @@ if __name__ == "__main__":
                     [1024, 2048, 1024],
                     [2048, 4096, 2048],
                     [512, 1024, 512, 256],
-                    [1024, 4096, 2048, 1024],
                 ],
             ),
             "cln_layers": hp.choice(
@@ -287,20 +283,17 @@ if __name__ == "__main__":
                     [1024, 2048, 1024],
                     [2048, 4096, 2048],
                     [512, 1024, 512, 256],
-                    [1024, 4096, 2048, 1024],
                 ],
             ),
             "spn_layers": hp.choice(
                 "spn_layers",
                 [
-                    [512, 256],
                     [1024, 512],
                     [2048, 1024],
                     [512, 256, 128],
                     [1024, 512, 256],
                 ],
             ),
-            "batch_size": hp.choice("batch_size", [32, 64, 128, 256, 512]),
             "input_dropout": hp.uniform("input_dropout", 0.0, 0.5),
             "hidden_dropout": hp.uniform("hidden_dropout", 0.0, 0.5),
         }
