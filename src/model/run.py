@@ -30,7 +30,7 @@ def parse_args():
         "--model",
         type=str,
         default="deepSynergy",
-        help="Choose which model to run: deepSynergy, 3MLP",
+        help="which to run: deepSynergy, 3MLP, matchMaker",
     )
     parser.add_argument(
         "--data_file",
