@@ -26,6 +26,7 @@ def configure_logging(args):
     now = datetime.datetime.now().strftime("%m-%d_%H-%M-%S")
     output_dir = os.path.join(args.output_dir, f"{now}")
     os.makedirs(output_dir, exist_ok=True)
+    args.output_dir = output_dir
 
     log_format = "%(asctime)s - %(levelname)s - %(message)s"
     logger = logging.getLogger("3MLPdeepSynergy")

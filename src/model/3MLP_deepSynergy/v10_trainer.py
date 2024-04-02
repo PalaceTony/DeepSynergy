@@ -28,7 +28,7 @@ class Trainer:
         if self.args.best_path is not None:
             self.best_path = self.args.best_path
         else:
-            self.best_path = os.path.join(os.getcwd(), "best_model.pth")
+            self.best_path = os.path.join(self.args.output_dir, "best_model.pth")
 
     def train_epoch(self):
         self.model.train()

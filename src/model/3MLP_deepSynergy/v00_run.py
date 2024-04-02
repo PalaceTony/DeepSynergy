@@ -46,7 +46,7 @@ parser.add_argument("--epochs", type=int, default=1000, help="Number of epochs")
 parser.add_argument(
     "--early_stop_patience", type=int, default=100, help="Early stopping"
 )
-parser.add_argument("--output_dir", type=str, default="outputs", help="outputs")
+parser.add_argument("--output_dir", type=str, default="outputs", help="base outputs")
 
 
 def main():
