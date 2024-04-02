@@ -13,7 +13,7 @@ class ThreeMLPdrugSynergyModel(nn.Module):
         drugB_input_shape,
         cell_line_input_shape,
         input_dropout=0.2,
-        hidden_dropout=0.2,
+        hidden_dropout=0.5,
     ):
         super(ThreeMLPdrugSynergyModel, self).__init__()
 
