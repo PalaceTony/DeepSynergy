@@ -1,8 +1,9 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
+import os
 
-from lib.utils import moving_average
+from lib.metrics import mse, rmse, mae, pearson
 
 
 class Trainer:
@@ -12,34 +13,32 @@ class Trainer:
         criterion,
         optimizer,
         logger,
+        args,
         train_loader,
-        device,
-        cfg,
-        val_loader=None,
-        test_loader=None,
-        firstTrain=True,
-        epochs=None,
+        val_loader,
+        test_loader,
     ):
         self.model = model
         self.criterion = criterion
         self.optimizer = optimizer
+        self.logger = logger
+        self.args = args
         self.train_loader = train_loader
         self.val_loader = val_loader
         self.test_loader = test_loader
-        self.device = device
-        self.cfg = cfg
-        self.firstTrain = firstTrain
-        self.epochs = epochs
-        self.logger = logger
+        if self.args.best_path is not None:
+            self.best_path = self.args.best_path
+        else:
+            self.best_path = os.path.join(self.args.output_dir, "best_model.pth")
 
     def train_epoch(self):
         self.model.train()
         train_loss = 0
-        for inputs, targets in self.train_loader:
-            inputs, targets = inputs.to(self.device), targets.to(self.device)
+        for inputs, labels in self.train_loader:
+            inputs, labels = inputs, labels
             self.optimizer.zero_grad()
             outputs = self.model(inputs)
-            loss = self.criterion(outputs.squeeze(), targets)
+            loss = self.criterion(outputs.squeeze(), labels)
             loss.backward()
             self.optimizer.step()
             train_loss += loss.item()
@@ -49,79 +48,76 @@ class Trainer:
         self.model.eval()
         val_loss = 0
         with torch.no_grad():
-            for inputs, targets in self.val_loader:
-                inputs, targets = inputs.to(self.device), targets.to(self.device)
+            for inputs, labels in self.val_loader:
+                inputs, labels = inputs, labels
                 outputs = self.model(inputs)
-                val_loss += self.criterion(outputs.squeeze(), targets).item()
+                val_loss += self.criterion(outputs.squeeze(), labels)
         return val_loss / len(self.val_loader)
 
     def train(self):
-        val_losses = []
-        test_losses = []
-        epochs = self.epochs if self.epochs is not None else self.cfg.training.epochs
-        for epoch in range(epochs):
-            train_loss = self.train_epoch()
-            if self.firstTrain:
-                val_loss = self.validate()
-                val_losses.append(val_loss)
-                self.logger.info(
-                    f"Epoch {epoch+1}/{epochs}, Train Loss: {train_loss:.4f}, Val Loss: {val_loss:.4f}"
-                )
-            else:
-                if epoch == 0:
-                    self.logger.info("Testing")
-                    self.logger.info(f"The best epoch is {epochs}")
-                test_result = self.test()
-                test_losses.append(
-                    test_result["test_loss"]
-                )  # Append the numeric test_loss
-                self.logger.info(
-                    f"Epoch {epoch+1}/{epochs}, Train Loss: {train_loss:.4f}, Test Loss: {test_result['test_loss']:.4f}"
-                )
-                if epoch == epochs - 1:
-                    # Save the model
-                    torch.save(self.model.state_dict(), "best_model.pth")
-                    self.logger.info("The best model is saved!")
+        best_loss = float("inf")
+        not_improved_count = 0
 
-        if self.firstTrain:
-            # Determine early stopping point
-            average_over = self.cfg.training.early_stopping_average_over
-            mov_av = moving_average(np.array(val_losses), average_over)
-            smooth_val_loss = np.pad(
-                mov_av, (average_over // 2, average_over // 2), mode="edge"
-            )
-            epo = np.argmin(smooth_val_loss)
-            return epo, val_losses, smooth_val_loss
-        else:
-            return test_losses
+        for epoch in range(1, self.args.epochs + 1):
+            self.logger.info(f"Epoch {epoch}/{self.args.epochs}")
+            train_loss = self.train_epoch()
+            val_loss = self.validate()
+
+            if val_loss < best_loss:
+                best_loss = val_loss
+                not_improved_count = 0
+                torch.save(self.model.state_dict(), self.best_path)
+                self.logger.info(
+                    f"Train loss: {train_loss:.4f}, Validate loss: {val_loss:.4f}"
+                )
+                self.logger.info("Validation loss improved. Saving current best model.")
+            else:
+                not_improved_count += 1
+                self.logger.info(
+                    f"Train loss: {train_loss:.4f}, Validate loss: {val_loss:.4f}"
+                )
+                self.logger.info(
+                    f"Validation loss did not improve. Count: {not_improved_count}/{self.args.early_stop_patience}"
+                )
+            if not_improved_count >= self.args.early_stop_patience:
+                self.logger.info("Early stopping triggered.")
+                break
+
+        self.logger.info("-------------------Training completed-------------------")
+        self.logger.info(f"Best model saved to {self.best_path}")
+        self.logger.info("-------------------Testing -------------------")
+        self.model.load_state_dict(torch.load(self.best_path))
+        self.test()
 
     def test(self):
+        if self.args.best_path is not None:
+            self.model.load_state_dict(torch.load(self.best_path))
+
         self.model.eval()
         test_loss = 0
-        total_mse = 0  # To accumulate MSE
-        total_samples = 0  # To keep track of the total number of samples
-
+        y_true = []
+        y_pred = []
         with torch.no_grad():
-            for inputs, targets in self.test_loader:
-                inputs, targets = inputs.to(self.device), targets.to(self.device)
+            for inputs, labels in self.test_loader:
+                inputs, labels = inputs, labels
                 outputs = self.model(inputs)
 
-                batch_loss = self.criterion(outputs.squeeze(), targets)
-                test_loss += batch_loss.item()
+                test_loss += self.criterion(outputs.squeeze(), labels)
 
-                mse = F.mse_loss(outputs.squeeze(), targets, reduction="sum")
-                total_mse += mse.item()
+                y_true.append(labels.cpu().numpy())
+                y_pred.append(outputs.squeeze().cpu().numpy())
 
-                # Update total samples
-                total_samples += targets.size(0)
+        y_true = np.concatenate(y_true, axis=0)
+        y_pred = np.concatenate(y_pred, axis=0)
+        mse_value = mse(y_true, y_pred)
+        rmse_value = rmse(y_true, y_pred)
+        mae_value = mae(y_true, y_pred)
+        pearson_value = pearson(y_true, y_pred)
 
-        # Compute final MSE and RMSE
-        final_mse = total_mse / total_samples
-        final_rmse = torch.sqrt(torch.tensor(final_mse))
+        self.logger.info(f"Test MSE: {mse_value:.4f}")
+        self.logger.info(f"Test RMSE: {rmse_value:.4f}")
+        self.logger.info(f"Test MAE: {mae_value:.4f}")
+        self.logger.info(f"Test Pearson: {pearson_value:.4f}")
+        self.logger.info(f"Test Loss: {test_loss / len(self.val_loader):.4f}")
 
-        # Returning the computed metrics
-        return {
-            "test_loss": test_loss / len(self.test_loader),
-            "mse": final_mse,
-            "rmse": final_rmse.item(),
-        }
+        return test_loss / len(self.val_loader)
