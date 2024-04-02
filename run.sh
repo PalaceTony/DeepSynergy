@@ -10,6 +10,6 @@ models=("deepSynergy" "3MLP" "matchMaker")
 for model in "${models[@]}"; do
     for dataset in "${datasets[@]}"; do
         dataset="/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/$dataset"
-        python src/model/run.py --epochs 2 --model $model --data_file=$dataset
+        python src/model/run.py --model $model --data_file=$dataset
     done
 done
