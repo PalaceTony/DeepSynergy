@@ -113,7 +113,9 @@ def parse_args():
     shared_params = {
         k: v
         for k, v in vars(args).items()
-        if not k.startswith("deepSynergy_") and not k.startswith("3MLP_")
+        if not k.startswith("deepSynergy_")
+        and not k.startswith("3MLP_")
+        and not k.startswith("matchMaker_")
     }
 
     args_deepSynergy = argparse.Namespace(
@@ -157,6 +159,10 @@ def run_model(hyperparams):
         dsn2_layers = hyperparams["dsn2_layers"]
         cln_layers = hyperparams["cln_layers"]
         spn_layers = hyperparams["spn_layers"]
+
+        logger.info(
+            f"Trial hyperparameters: Learning Rate: {learning_rate}, Hidden Dropout: {hidden_dropout}, Input Dropout: {input_dropout}, DSN1 Layers: {dsn1_layers}, DSN2 Layers: {dsn2_layers}, CLN Layers: {cln_layers}, SPN Layers: {spn_layers}"
+        )
 
         args.learning_rate = learning_rate
         args.hidden_dropout = hidden_dropout
@@ -292,6 +298,7 @@ if __name__ == "__main__":
                     [2048, 1024],
                     [512, 256, 128],
                     [1024, 512, 256],
+                    [2048, 1024, 512],
                 ],
             ),
             "input_dropout": hp.uniform("input_dropout", 0.0, 0.5),
@@ -302,7 +309,7 @@ if __name__ == "__main__":
             fn=run_model,
             space=space,
             algo=tpe.suggest,
-            max_evals=100,
+            max_evals=200,
             trials=trials,
         )
         logger.info(f"Best hyperparameters: {best}")
