@@ -17,6 +17,7 @@ class Trainer:
         train_loader,
         val_loader,
         test_loader,
+        scheduler,
     ):
         self.model = model
         self.criterion = criterion
@@ -30,6 +31,7 @@ class Trainer:
             self.best_path = self.args.best_path
         else:
             self.best_path = os.path.join(self.args.output_dir, "best_model.pth")
+        self.scheduler = scheduler
 
     def train_epoch(self):
         self.model.train()
@@ -88,6 +90,7 @@ class Trainer:
             self.logger.info(f"Epoch {epoch}/{self.args.epochs}")
             train_loss = self.train_epoch()
             val_loss = self.validate()
+            self.scheduler.step(val_loss)
             if train_loss > loss_threshold:
                 self.logger.info(
                     f"Train loss exceeded threshold with {train_loss:.4f}, stopping training..."
