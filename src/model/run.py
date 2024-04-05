@@ -17,7 +17,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Parser for all models")
     # shared ####################################################################################################
     parser.add_argument("--epochs", type=int, default=1000, help="epochs")
-    parser.add_argument("--batch_size", type=int, default=512, help="Batch size")
+    parser.add_argument("--batch_size", type=int, default=64, help="Batch size")
     parser.add_argument(
         "--input_dropout", type=float, default=0.2, help="Input dropout"
     )
@@ -28,7 +28,7 @@ def parse_args():
     parser.add_argument(
         "--model",
         type=str,
-        default="deepSynergy",
+        default="3MLP",
         help="which to run: deepSynergy, 3MLP, matchMaker",
     )
     parser.add_argument(
@@ -76,11 +76,14 @@ def parse_args():
     parser.add_argument(
         "--3MLP_cln_layers",
         type=int,
-        default=[2048, 4096, 2048],
+        default=[1024, 2048, 1024],
         help="cell line layer",
     )
     parser.add_argument(
-        "--3MLP_spn_layers", type=int, default=[2048, 1024], help="Prediction Layer"
+        "--3MLP_spn_layers",
+        type=int,
+        default=[2048, 1024, 512],
+        help="Prediction Layer",
     )
 
     # matchMaker ###################################################################################################
@@ -153,22 +156,18 @@ def run_model(hyperparams):
     if args.hyperopt:
         logger.info("Hyperopt is updating the hyperparameters based on the space...")
         learning_rate = hyperparams["learning_rate"]
-        hidden_dropout = hyperparams["hidden_dropout"]
-        input_dropout = hyperparams["input_dropout"]
+        batch_size = hyperparams["batch_size"]
         dsn1_layers = hyperparams["dsn1_layers"]
-        dsn2_layers = hyperparams["dsn2_layers"]
         cln_layers = hyperparams["cln_layers"]
         spn_layers = hyperparams["spn_layers"]
 
         logger.info(
-            f"Trial hyperparameters: Learning Rate: {learning_rate}, Hidden Dropout: {hidden_dropout}, Input Dropout: {input_dropout}, DSN1 Layers: {dsn1_layers}, DSN2 Layers: {dsn2_layers}, CLN Layers: {cln_layers}, SPN Layers: {spn_layers}"
+            f"Learning rate: {learning_rate}, Batch size: {batch_size}, DSN1: {dsn1_layers}, CLN: {cln_layers}, SPN: {spn_layers}"
         )
 
         args.learning_rate = learning_rate
-        args.hidden_dropout = hidden_dropout
-        args.input_dropout = input_dropout
+        args.batch_size = batch_size
         args.dsn1_layers = dsn1_layers
-        args.dsn2_layers = dsn2_layers
         args.cln_layers = cln_layers
         args.spn_layers = spn_layers
         logger.info("Done updating hyperparameters based on the space...")
@@ -202,6 +201,9 @@ def run_model(hyperparams):
             device
         )
     elif args.model == "3MLP":
+        args.dsn2_layers = (
+            args.dsn1_layers
+        )  # 3MLP has the same structure for drug A and drug B
         model = ThreeMLPdrugSynergyModel(
             args.dsn1_layers,
             args.dsn2_layers,
@@ -223,6 +225,9 @@ def run_model(hyperparams):
     # Optimizer and Criterion
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
     criterion = nn.MSELoss()
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, "min", factor=0.1, patience=35, verbose=True
+    )
 
     # Train
     trainer = Trainer(
@@ -234,6 +239,7 @@ def run_model(hyperparams):
         train_loader,
         val_loader,
         test_loader,
+        scheduler,
     )
     try:
         best_val_loss = trainer.train()
@@ -264,22 +270,12 @@ if __name__ == "__main__":
         logger.info("Tuning 3MLP")
         space = {
             "learning_rate": hp.loguniform("learning_rate", -7, -3),
+            "batch_size": hp.choice("batch_size", [64, 128, 256, 512, 1024]),
             "dsn1_layers": hp.choice(
                 "dsn1_layers",
                 [
                     [512, 1024, 512],
                     [1024, 2048, 1024],
-                    [2048, 4096, 2048],
-                    [512, 1024, 512, 256],
-                ],
-            ),
-            "dsn2_layers": hp.choice(
-                "dsn2_layers",
-                [
-                    [512, 1024, 512],
-                    [1024, 2048, 1024],
-                    [2048, 4096, 2048],
-                    [512, 1024, 512, 256],
                 ],
             ),
             "cln_layers": hp.choice(
@@ -287,29 +283,22 @@ if __name__ == "__main__":
                 [
                     [512, 1024, 512],
                     [1024, 2048, 1024],
-                    [2048, 4096, 2048],
-                    [512, 1024, 512, 256],
                 ],
             ),
             "spn_layers": hp.choice(
                 "spn_layers",
                 [
                     [1024, 512],
-                    [2048, 1024],
-                    [512, 256, 128],
                     [1024, 512, 256],
-                    [2048, 1024, 512],
                 ],
             ),
-            "input_dropout": hp.uniform("input_dropout", 0.0, 0.5),
-            "hidden_dropout": hp.uniform("hidden_dropout", 0.0, 0.5),
         }
         trials = Trials()
         best = fmin(
             fn=run_model,
             space=space,
             algo=tpe.suggest,
-            max_evals=200,
+            max_evals=190,
             trials=trials,
         )
         logger.info(f"Best hyperparameters: {best}")
