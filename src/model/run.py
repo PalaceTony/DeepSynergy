@@ -2,7 +2,7 @@ import argparse
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from hyperopt import fmin, tpe, hp, STATUS_OK, Trials
+from hyperopt import fmin, tpe, hp, STATUS_OK, Trials, space_eval
 
 
 from m_deepSynergy import DeepSynergyModel
@@ -10,7 +10,7 @@ from m_threeMLP import ThreeMLPdrugSynergyModel
 from m_matchMaker import MatchMakerModel
 from trainer import Trainer
 from lib.dataloader import get_dataloader
-from lib.utils import set_seed, configure_logging, int_list
+from lib.utils import set_seed, configure_logging, int_list, print_hopt_space
 
 
 def parse_args():
@@ -271,38 +271,50 @@ if __name__ == "__main__":
         logger.info("Tuning 3MLP")
         space = {
             "learning_rate": hp.loguniform("learning_rate", -7, -3),
-            "batch_size": hp.choice("batch_size", [64, 128, 256, 512, 1024]),
+            "batch_size": hp.choice("batch_size", [64, 128, 256, 512]),
             "dsn1_layers": hp.choice(
                 "dsn1_layers",
                 [
-                    [1024, 2048, 1024],
+                    [1024, 1024],
                     [2048, 4096, 2048],
                 ],
             ),
             "cln_layers": hp.choice(
                 "cln_layers",
                 [
-                    [1024, 2048, 1024],
+                    [1024, 1024],
                     [2048, 4096, 2048],
                 ],
             ),
             "spn_layers": hp.choice(
                 "spn_layers",
                 [
+                    [1024, 512],
                     [2048, 1024],
-                    [1024, 512, 256],
-                    [2048, 1024, 512],
                 ],
             ),
         }
+
+        # Save space
+        print_hopt_space(logger, space)
+
         trials = Trials()
-        best = fmin(
+        best_indices = fmin(
             fn=run_model,
             space=space,
             algo=tpe.suggest,
-            max_evals=190,
+            max_evals=200,
             trials=trials,
         )
-        logger.info(f"Best hyperparameters: {best}")
+
+        for i, trial in enumerate(trials.trials):
+            logger.info(
+                f"Trial {i+1}: Loss: {trial['result']['loss']}, Params: {trial['misc']['vals']}"
+            )
+        best_params = space_eval(space, best_indices)
+        best_loss = min(trial["result"]["loss"] for trial in trials.trials)
+        logger.info(f"Best hyperparameters: {best_params}")
+        logger.info(f"Best loss: {best_loss}")
+
     else:
         best_val_loss = run_model(args)

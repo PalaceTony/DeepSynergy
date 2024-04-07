@@ -67,3 +67,10 @@ def configure_logging(args):
 def int_list(string):
     # This function converts a string in the format "[1,2,3]" into a list of integers.
     return [int(item) for item in string.strip("[]").split(",")]
+
+
+def print_hopt_space(logger, hparam):
+    logger.info("Hyperparams testing:")
+    for str in hparam:
+        logger.info(f"{str}:")
+        logger.info(f"{hparam[str]}")
