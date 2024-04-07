@@ -5,6 +5,7 @@ import datetime
 import os
 import json
 import argparse
+import random
 
 
 def moving_average(a, n=3):
@@ -14,13 +15,17 @@ def moving_average(a, n=3):
 
 
 def set_seed(seed_value):
+    random.seed(seed_value)  # Set python seed
     np.random.seed(seed_value)  # Set numpy seed
     torch.manual_seed(seed_value)  # Set pytorch seed CPU
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed(seed_value)  # Set pytorch seed GPU
-        torch.cuda.manual_seed_all(seed_value)  # for multiGPU.
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
+    torch.cuda.manual_seed(seed_value)
+    torch.cuda.cudnn_enabled = False
+    # torch.backends.cudnn.deterministic = True
+    # if torch.cuda.is_available():
+    #     torch.cuda.manual_seed(seed_value)  # Set pytorch seed GPU
+    #     torch.cuda.manual_seed_all(seed_value)  # for multiGPU.
+    # torch.backends.cudnn.deterministic = True
+    # torch.backends.cudnn.benchmark = False
 
 
 def configure_logging(args):
