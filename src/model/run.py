@@ -10,7 +10,7 @@ from m_threeMLP import ThreeMLPdrugSynergyModel
 from m_matchMaker import MatchMakerModel
 from trainer import Trainer
 from lib.dataloader import get_dataloader
-from lib.utils import set_seed, configure_logging
+from lib.utils import set_seed, configure_logging, int_list
 
 
 def parse_args():
@@ -45,6 +45,7 @@ def parse_args():
         "--output_dir", type=str, default="outputs", help="base outputs"
     )
     parser.add_argument("--seed", type=int, default=42, help="seed")
+    parser.add_argument("--note", type=str, default="", help="note")
 
     # deepSynergy ####################################################################################################
     parser.add_argument(
@@ -63,25 +64,25 @@ def parse_args():
     )
     parser.add_argument(
         "--3MLP_dsn1_layers",
-        type=int,
+        type=int_list,
         default=[2048, 4096, 2048],
         help="drug a layer",
     )
     parser.add_argument(
         "--3MLP_dsn2_layers",
-        type=int,
+        type=int_list,
         default=[2048, 4096, 2048],
         help="drug b layer",
     )
     parser.add_argument(
         "--3MLP_cln_layers",
-        type=int,
+        type=int_list,
         default=[1024, 2048, 1024],
         help="cell line layer",
     )
     parser.add_argument(
         "--3MLP_spn_layers",
-        type=int,
+        type=int_list,
         default=[2048, 1024, 512],
         help="Prediction Layer",
     )

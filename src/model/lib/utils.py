@@ -26,7 +26,8 @@ def set_seed(seed_value):
 def configure_logging(args):
     # Generate output directory with the current timestamp
     now = datetime.datetime.now().strftime("%m-%d_%H-%M-%S")
-    output_dir = os.path.join(args.output_dir, args.model, f"{now}")
+    note_suffix = f"_{args.note}" if args.note else ""
+    output_dir = os.path.join(args.output_dir, args.model, f"{now}{note_suffix}")
     os.makedirs(output_dir, exist_ok=True)
     args.output_dir = output_dir
 
@@ -56,3 +57,8 @@ def configure_logging(args):
         log_file.write("\nConfiguration Parameters:\n" + config_str + "\n")
 
     return logger
+
+
+def int_list(string):
+    # This function converts a string in the format "[1,2,3]" into a list of integers.
+    return [int(item) for item in string.strip("[]").split(",")]
