@@ -37,7 +37,7 @@ def process_data_for_folds(test_fold, val_fold, norm="tanh"):
     file.close()
 
     labels = pd.read_csv(
-        "/hpc2hdd/home/mgong081/Projects/DeepSynergy/raw_data/labels.csv", index_col=0
+        "/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/raw/labels.csv", index_col=0
     )
     labels = pd.concat([labels, labels])
 
