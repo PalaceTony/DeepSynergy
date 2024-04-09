@@ -83,7 +83,7 @@ def parse_args():
     parser.add_argument(
         "--3MLP_spn_layers",
         type=int_list,
-        default=[2048, 1024, 512],
+        default=[2048, 1024],
         help="Prediction Layer",
     )
 
@@ -202,9 +202,9 @@ def run_model(hyperparams):
             device
         )
     elif args.model == "3MLP":
-        args.dsn2_layers = (
-            args.dsn1_layers
-        )  # 3MLP has the same structure for drug A and drug B
+        # args.dsn2_layers = (
+        #     args.dsn1_layers
+        # )  # 3MLP has the same structure for drug A and drug B
         model = ThreeMLPdrugSynergyModel(
             args.dsn1_layers,
             args.dsn2_layers,
@@ -275,22 +275,22 @@ if __name__ == "__main__":
             "dsn1_layers": hp.choice(
                 "dsn1_layers",
                 [
-                    [1024, 1024],
                     [2048, 4096, 2048],
+                    [4096, 8192, 4096],
                 ],
             ),
             "cln_layers": hp.choice(
                 "cln_layers",
                 [
-                    [1024, 1024],
                     [2048, 4096, 2048],
+                    [4096, 8192, 4096],
                 ],
             ),
             "spn_layers": hp.choice(
                 "spn_layers",
                 [
-                    [1024, 512],
                     [2048, 1024],
+                    [4096, 2048],
                 ],
             ),
         }
