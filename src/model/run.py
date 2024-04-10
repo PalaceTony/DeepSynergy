@@ -162,10 +162,6 @@ def run_model(hyperparams):
         cln_layers = hyperparams["cln_layers"]
         spn_layers = hyperparams["spn_layers"]
 
-        logger.info(
-            f"Learning rate: {learning_rate}, Batch size: {batch_size}, DSN1: {dsn1_layers}, CLN: {cln_layers}, SPN: {spn_layers}"
-        )
-
         args.learning_rate = learning_rate
         args.batch_size = batch_size
         args.dsn1_layers = dsn1_layers
@@ -202,9 +198,13 @@ def run_model(hyperparams):
             device
         )
     elif args.model == "3MLP":
-        # args.dsn2_layers = (
-        #     args.dsn1_layers
-        # )  # 3MLP has the same structure for drug A and drug B
+        args.dsn2_layers = (
+            args.dsn1_layers
+        )  # 3MLP has the same structure for drug A and drug B
+
+        logger.info(
+            f"Learning rate: {args.learning_rate}, Batch size: {args.batch_size}, DSN1: {args.dsn1_layers}, DSN2: {args.dsn2_layers}, CLN: {args.cln_layers}, SPN: {args.spn_layers}"
+        )
         model = ThreeMLPdrugSynergyModel(
             args.dsn1_layers,
             args.dsn2_layers,
@@ -227,7 +227,7 @@ def run_model(hyperparams):
     optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
     criterion = nn.MSELoss()
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, "min", factor=0.1, patience=35, verbose=True
+        optimizer, "min", factor=0.5, patience=50, verbose=True
     )
 
     # Train
@@ -270,7 +270,7 @@ if __name__ == "__main__":
     if args.hyperopt:
         logger.info("Tuning 3MLP")
         space = {
-            "learning_rate": hp.loguniform("learning_rate", -7, -3),
+            "learning_rate": hp.choice("learning_rate", [0.001, 0.0001, 0.00001]),
             "batch_size": hp.choice("batch_size", [64, 128, 256, 512]),
             "dsn1_layers": hp.choice(
                 "dsn1_layers",
@@ -289,6 +289,7 @@ if __name__ == "__main__":
             "spn_layers": hp.choice(
                 "spn_layers",
                 [
+                    [1024, 512],
                     [2048, 1024],
                     [4096, 2048],
                 ],
@@ -303,7 +304,7 @@ if __name__ == "__main__":
             fn=run_model,
             space=space,
             algo=tpe.suggest,
-            max_evals=200,
+            max_evals=150,
             trials=trials,
         )
 
