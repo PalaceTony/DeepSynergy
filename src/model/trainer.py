@@ -82,7 +82,7 @@ class Trainer:
         return val_loss / len(self.val_loader)
 
     def train(self):
-        best_loss = float("inf")
+        best_loss = 99999999
         not_improved_count = 0
         loss_threshold = 1e15
 
