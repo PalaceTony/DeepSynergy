@@ -158,6 +158,9 @@ def run_model(hyperparams):
     data_files = [
         "/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/data_test_fold1_tanh.p",
         "/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/data_test_fold2_tanh.p",
+        "/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/data_test_fold3_tanh.p",
+        "/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/data_test_fold4_tanh.p",
+        "/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/data_test_fold0_tanh.p",
     ]
     losses = []
     for data_file in data_files:
@@ -261,7 +264,7 @@ def run_model(hyperparams):
             best_val_loss = 99999999
         logger.info(f"Dataset {args.data_file} completed with loss: {best_val_loss}")
         losses.append(best_val_loss.cpu().numpy())
-
+    logger.info(f"All losses: {losses}")
     best_val_loss = np.mean(losses)
     logger.info(f"Best validation loss: {best_val_loss:.4f}")
 
