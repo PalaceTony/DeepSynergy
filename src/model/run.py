@@ -2,6 +2,7 @@ import argparse
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import numpy as np
 from hyperopt import fmin, tpe, hp, STATUS_OK, Trials, space_eval
 
 
@@ -153,6 +154,7 @@ def parse_args():
 
 
 def run_model(hyperparams):
+    set_seed(args.seed)
 
     if args.hyperopt:
         logger.info("Hyperopt is updating the hyperparameters based on the space...")
@@ -263,7 +265,6 @@ if __name__ == "__main__":
         args = args_matchMaker
     else:
         raise ValueError("Unsupported")
-    set_seed(args.seed)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     logger = configure_logging(args)
 
