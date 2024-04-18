@@ -26,6 +26,7 @@ def parse_args():
         "--hidden_dropout", type=float, default=0.5, help="Hidden dropout"
     )
     parser.add_argument("--hyperopt", type=bool, default=False, help="Hyperopt")
+    parser.add_argument("--max_evals", type=int, default=150, help="trial number")
     parser.add_argument(
         "--model",
         type=str,
@@ -154,102 +155,114 @@ def parse_args():
 
 
 def run_model(hyperparams):
-    set_seed(args.seed)
+    data_files = [
+        "/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/data_test_fold1_tanh.p",
+        "/hpc2hdd/home/mgong081/Projects/DeepSynergy/data/data_test_fold2_tanh.p",
+    ]
+    losses = []
+    for data_file in data_files:
+        set_seed(args.seed)
+        args.data_file = data_file
+        logger.info(f"Data file: {args.data_file}")
+        if args.hyperopt:
+            logger.info(
+                "Hyperopt is updating the hyperparameters based on the space..."
+            )
+            learning_rate = hyperparams["learning_rate"]
+            batch_size = hyperparams["batch_size"]
+            dsn1_layers = hyperparams["dsn1_layers"]
+            cln_layers = hyperparams["cln_layers"]
+            spn_layers = hyperparams["spn_layers"]
 
-    if args.hyperopt:
-        logger.info("Hyperopt is updating the hyperparameters based on the space...")
-        learning_rate = hyperparams["learning_rate"]
-        batch_size = hyperparams["batch_size"]
-        dsn1_layers = hyperparams["dsn1_layers"]
-        cln_layers = hyperparams["cln_layers"]
-        spn_layers = hyperparams["spn_layers"]
+            args.learning_rate = learning_rate
+            args.batch_size = batch_size
+            args.dsn1_layers = dsn1_layers
+            args.cln_layers = cln_layers
+            args.spn_layers = spn_layers
+            logger.info("Done updating hyperparameters based on the space...")
 
-        args.learning_rate = learning_rate
-        args.batch_size = batch_size
-        args.dsn1_layers = dsn1_layers
-        args.cln_layers = cln_layers
-        args.spn_layers = spn_layers
-        logger.info("Done updating hyperparameters based on the space...")
+        # Dataloader
+        if args.model == "deepSynergy":
+            train_loader, val_loader, test_loader, drugs_cell_shape = get_dataloader(
+                args, device
+            )
+        elif args.model == "3MLP":
+            (
+                train_loader,
+                val_loader,
+                test_loader,
+                drug_A_feature_shape,
+                drug_B_feature_shape,
+                cell_line_feature_shape,
+            ) = get_dataloader(args, device)
+        elif args.model == "matchMaker":
+            (
+                train_loader,
+                val_loader,
+                test_loader,
+                drug_A_feature_cell_shape,
+                drug_B_feature_cell_shape,
+            ) = get_dataloader(args, device)
 
-    # Dataloader
-    if args.model == "deepSynergy":
-        train_loader, val_loader, test_loader, drugs_cell_shape = get_dataloader(
-            args, device
+        # Model
+        if args.model == "deepSynergy":
+            model = DeepSynergyModel(
+                layers=args.layers, input_size=drugs_cell_shape
+            ).to(device)
+        elif args.model == "3MLP":
+            args.dsn2_layers = (
+                args.dsn1_layers
+            )  # 3MLP has the same structure for drug A and drug B
+
+            logger.info(
+                f"Learning rate: {args.learning_rate}, Batch size: {args.batch_size}, DSN1: {args.dsn1_layers}, DSN2: {args.dsn2_layers}, CLN: {args.cln_layers}, SPN: {args.spn_layers}"
+            )
+            model = ThreeMLPdrugSynergyModel(
+                args.dsn1_layers,
+                args.dsn2_layers,
+                args.cln_layers,
+                args.spn_layers,
+                drug_A_feature_shape,
+                drug_B_feature_shape,
+                cell_line_feature_shape,
+            ).to(device)
+        elif args.model == "matchMaker":
+            model = MatchMakerModel(
+                args.dsn1_layers,
+                args.dsn2_layers,
+                args.spn_layers,
+                drug_A_feature_cell_shape,
+                drug_B_feature_cell_shape,
+            ).to(device)
+
+        # Optimizer and Criterion
+        optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+        criterion = nn.MSELoss()
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, "min", factor=0.5, patience=50, verbose=True
         )
-    elif args.model == "3MLP":
-        (
+
+        # Train
+        trainer = Trainer(
+            model,
+            criterion,
+            optimizer,
+            logger,
+            args,
             train_loader,
             val_loader,
             test_loader,
-            drug_A_feature_shape,
-            drug_B_feature_shape,
-            cell_line_feature_shape,
-        ) = get_dataloader(args, device)
-    elif args.model == "matchMaker":
-        (
-            train_loader,
-            val_loader,
-            test_loader,
-            drug_A_feature_cell_shape,
-            drug_B_feature_cell_shape,
-        ) = get_dataloader(args, device)
-
-    # Model
-    if args.model == "deepSynergy":
-        model = DeepSynergyModel(layers=args.layers, input_size=drugs_cell_shape).to(
-            device
+            scheduler,
         )
-    elif args.model == "3MLP":
-        args.dsn2_layers = (
-            args.dsn1_layers
-        )  # 3MLP has the same structure for drug A and drug B
+        try:
+            best_val_loss = trainer.train()
+        except Exception as e:
+            logger.error(f"An error occurred during training: {e}")
+            best_val_loss = 99999999
+        logger.info(f"Dataset {args.data_file} completed with loss: {best_val_loss}")
+        losses.append(best_val_loss.cpu().numpy())
 
-        logger.info(
-            f"Learning rate: {args.learning_rate}, Batch size: {args.batch_size}, DSN1: {args.dsn1_layers}, DSN2: {args.dsn2_layers}, CLN: {args.cln_layers}, SPN: {args.spn_layers}"
-        )
-        model = ThreeMLPdrugSynergyModel(
-            args.dsn1_layers,
-            args.dsn2_layers,
-            args.cln_layers,
-            args.spn_layers,
-            drug_A_feature_shape,
-            drug_B_feature_shape,
-            cell_line_feature_shape,
-        ).to(device)
-    elif args.model == "matchMaker":
-        model = MatchMakerModel(
-            args.dsn1_layers,
-            args.dsn2_layers,
-            args.spn_layers,
-            drug_A_feature_cell_shape,
-            drug_B_feature_cell_shape,
-        ).to(device)
-
-    # Optimizer and Criterion
-    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
-    criterion = nn.MSELoss()
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        optimizer, "min", factor=0.5, patience=50, verbose=True
-    )
-
-    # Train
-    trainer = Trainer(
-        model,
-        criterion,
-        optimizer,
-        logger,
-        args,
-        train_loader,
-        val_loader,
-        test_loader,
-        scheduler,
-    )
-    try:
-        best_val_loss = trainer.train()
-    except Exception as e:
-        logger.error(f"An error occurred during training: {e}")
-        best_val_loss = float("inf")
-
+    best_val_loss = np.mean(losses)
     logger.info(f"Best validation loss: {best_val_loss:.4f}")
 
     return {"loss": best_val_loss, "status": STATUS_OK} if args.hyperopt else None
@@ -321,7 +334,7 @@ if __name__ == "__main__":
             fn=run_model,
             space=space,
             algo=tpe.suggest,
-            max_evals=150,
+            max_evals=args.max_evals,
             trials=trials,
         )
 
