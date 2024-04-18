@@ -18,7 +18,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description="Parser for all models")
     # shared ####################################################################################################
     parser.add_argument("--epochs", type=int, default=1000, help="epochs")
-    parser.add_argument("--batch_size", type=int, default=64, help="Batch size")
+    parser.add_argument("--batch_size", type=int, default=128, help="Batch size")
     parser.add_argument(
         "--input_dropout", type=float, default=0.2, help="Input dropout"
     )
