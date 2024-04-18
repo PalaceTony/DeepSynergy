@@ -271,8 +271,24 @@ if __name__ == "__main__":
     if args.hyperopt:
         logger.info("Tuning 3MLP")
         space = {
-            "learning_rate": hp.choice("learning_rate", [0.001, 0.0001, 0.00001]),
-            "batch_size": hp.choice("batch_size", [64, 128, 256, 512]),
+            "learning_rate": hp.choice(
+                "learning_rate",
+                [
+                    0.01,
+                    0.001,
+                    0.0001,
+                    0.00001,
+                    0.03,
+                    0.003,
+                    0.0003,
+                    0.00003,
+                    0.05,
+                    0.005,
+                    0.0005,
+                    0.00005,
+                ],
+            ),
+            "batch_size": hp.choice("batch_size", [128, 256, 512, 1024]),
             "dsn1_layers": hp.choice(
                 "dsn1_layers",
                 [
